@@ -13,6 +13,7 @@ export interface Hike {
   meetingTime: string;
   startTime: string;
   registrationOpen: boolean;
+  registrationRequired?: boolean;
   maxParticipants?: number;
   hasLunch: boolean;
   lunchVenue?: string;
@@ -43,6 +44,26 @@ export const STATIC_HIKES: Hike[] = [
     lunchUrl: 'https://www.hartjegroen.com/de-boshut-ontbijt-lunch-borrel/menukaart/',
     difficulty: 'easy',
     terrain: 'Bospaden, goed begaanbaar',
+  },
+  {
+    slug: 'hoge-veluwe-okt-2026',
+    title: 'Hoge Veluwe · Wandeldag',
+    subtitle: 'Nationaal Park De Hoge Veluwe',
+    date: '2026-10-03',
+    location: 'Park Paviljoen, Houtkampweg 9, Otterlo',
+    region: 'Gelderland',
+    distanceKm: 11,
+    durationMin: 150,
+    description: `Een wandeldag door het veelzijdige landschap van Nationaal Park De Hoge Veluwe — met bijzondere zandverstuivingen, uitgestrekte bossen en glooiende heidevelden.\n\nWe starten en eindigen bij het Park Paviljoen in het hart van het park. De starttijd is flexibel: je kunt tussen 10:00 en 12:00 beginnen. Entree van het park is voor eigen rekening.\n\nAanmelden is niet verplicht maar wordt gewaardeerd zodat we weten wie er meekomt.`,
+    status: 'upcoming',
+    meetingPoint: 'Park Paviljoen, Houtkampweg 9, 6731 AV Otterlo',
+    meetingTime: '09:00',
+    startTime: '10:00',
+    registrationOpen: true,
+    registrationRequired: false,
+    hasLunch: false,
+    difficulty: 'moderate',
+    terrain: 'Zandverstuivingen, bospaden en heidevelden',
   },
 ];
 
