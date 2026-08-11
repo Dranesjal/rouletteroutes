@@ -113,9 +113,12 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
               </div>
             </div>
 
-            <p className="font-medium pt-1" style={{ color: '#2C3E2E' }}>
-              Wil je een boekje? Vink dit aan bij de aanmelding — dan zorgen wij dat je een boekje ontvangt bij de start.
-            </p>
+            <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
+                <p className="font-bold mb-1" style={{ color: '#2C3E2E' }}>Prijs Wandelkilometerboekje</p>
+                <p style={{ color: '#3E5C45' }}>
+                  Een Wandelkilometerboekje kost <strong>€ 3,50</strong>. Wil je een boekje? Vink dit aan bij de aanmelding — dan zorgen wij dat je een boekje ontvangt bij de start.
+                </p>
+              </div>
           </div>
         </div>
       )}
