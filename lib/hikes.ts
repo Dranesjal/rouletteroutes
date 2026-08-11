@@ -21,6 +21,7 @@ export interface Hike {
   imageUrl?: string;
   difficulty: 'easy' | 'moderate' | 'hard';
   terrain?: string;
+  wandelboekje?: boolean;
 }
 
 export const STATIC_HIKES: Hike[] = [
@@ -63,6 +64,7 @@ export const STATIC_HIKES: Hike[] = [
     hasLunch: false,
     difficulty: 'moderate',
     terrain: 'Zandverstuivingen, bospaden en heidevelden',
+    wandelboekje: true,
   },
 ];
 

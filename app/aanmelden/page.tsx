@@ -10,6 +10,7 @@ interface Hike {
   registrationOpen: boolean;
   registrationRequired?: boolean;
   hasLunch: boolean;
+  wandelboekje?: boolean;
 }
 
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -42,6 +43,7 @@ function AanmeldenForm() {
     emailConfirm: '',
     dietary: '',
     message: '',
+    wiltBoekje: false,
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -56,6 +58,8 @@ function AanmeldenForm() {
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
+  const setCheck = (k: 'wiltBoekje') => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.checked }));
 
   const selectedHike = hikes.find((h) => h.slug === form.wandeling);
   const isVeluwe = form.wandeling === VELUWE_SLUG;
@@ -86,6 +90,7 @@ function AanmeldenForm() {
         email: form.email,
         dietary: form.dietary,
         message: form.message,
+        wiltBoekje: form.wiltBoekje,
       };
       const res = await fetch('/api/register', {
         method: 'POST',
@@ -265,6 +270,20 @@ function AanmeldenForm() {
             Overig
           </h2>
           <div className="space-y-4">
+            {selectedHike?.wandelboekje && (
+              <div className="p-4 rounded-xl border" style={{ background: '#F2F8F4', borderColor: '#b6d9c0' }}>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" checked={form.wiltBoekje} onChange={setCheck('wiltBoekje')}
+                    className="mt-0.5 w-4 h-4 flex-shrink-0" style={{ accentColor: '#4A7C59' }} />
+                  <span className="text-sm leading-relaxed" style={{ color: '#2C3E2E' }}>
+                    <strong>Ik wil een Wandelkilometerboekje ontvangen bij de start</strong>
+                    <span className="block mt-1 text-xs" style={{ color: '#4A7C59' }}>
+                      Met het boekje houd je al je wandelprestaties bij. Na 250 km kun je een wandelprestatiekruis bestellen. Wij zorgen dat je het boekje bij de start ontvangt.
+                    </span>
+                  </span>
+                </label>
+              </div>
+            )}
             <div>
               <label className="label-sm block mb-1">Dieetwensen / allergieën</label>
               <input className="field" type="text" placeholder="Bijv. vegetarisch, glutenvrij..." value={form.dietary} onChange={set('dietary')} />

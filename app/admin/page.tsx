@@ -15,6 +15,7 @@ interface Registration {
   phone: string;
   dietary: string;
   message: string;
+  wiltBoekje: boolean;
   registeredAt: string;
 }
 
@@ -166,7 +167,7 @@ export default function AdminPage() {
               <table className="w-full text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 <thead style={{ background: '#F5E4C0' }}>
                   <tr>
-                    {['Naam', 'Woonplaats', 'Geboortedatum', 'Geslacht', 'E-mail', 'Telefoon', 'Wandeling', 'Dieet', 'Opmerking', 'Datum'].map((h) => (
+                    {['Naam', 'Woonplaats', 'Geboortedatum', 'Geslacht', 'E-mail', 'Telefoon', 'Wandeling', 'Boekje', 'Dieet', 'Opmerking', 'Datum'].map((h) => (
                       <th key={h} className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wide whitespace-nowrap" style={{ color: '#8B5A2B' }}>{h}</th>
                     ))}
                   </tr>
@@ -181,6 +182,7 @@ export default function AdminPage() {
                       <td className="px-4 py-3">{r.email}</td>
                       <td className="px-4 py-3 whitespace-nowrap">{r.phone || '-'}</td>
                       <td className="px-4 py-3">{r.wandeling}</td>
+                      <td className="px-4 py-3">{r.wiltBoekje ? '✅ Ja' : 'Nee'}</td>
                       <td className="px-4 py-3">{r.dietary || '-'}</td>
                       <td className="px-4 py-3 max-w-xs truncate">{r.message || '-'}</td>
                       <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#8B5A2B' }}>

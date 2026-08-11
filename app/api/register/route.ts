@@ -17,6 +17,7 @@ interface Registration {
   phone: string;
   dietary: string;
   message: string;
+  wiltBoekje: boolean;
   registeredAt: string;
 }
 
@@ -78,6 +79,7 @@ export async function POST(req: NextRequest) {
     phone: body.phone?.trim() ?? '',
     dietary: body.dietary?.trim() ?? '',
     message: body.message?.trim() ?? '',
+    wiltBoekje: body.wiltBoekje === true,
     registeredAt: new Date().toISOString(),
   };
 
@@ -93,7 +95,7 @@ export async function POST(req: NextRequest) {
         from: 'Roulette Routes Roamers <noreply@rouletteroutes.nl>',
         to: process.env.NOTIFY_EMAIL,
         subject: `Nieuwe aanmelding: ${name} voor ${wandeling}`,
-        text: `Nieuwe aanmelding ontvangen:\n\nNaam: ${name}\nAdres: ${body.adres ?? '-'}\nPostcode: ${body.postcode ?? '-'}\nWoonplaats: ${body.woonplaats ?? '-'}\nLand: ${body.land ?? '-'}\nGeboortedatum: ${body.geboortedatum ?? '-'}\nGeslacht: ${body.geslacht ?? '-'}\nEmail: ${email}\nTelefoon: ${body.phone ?? '-'}\nWandeling: ${wandeling}\nDieetwensen: ${body.dietary ?? '-'}\nOpmerking: ${body.message ?? '-'}\n`,
+        text: `Nieuwe aanmelding ontvangen:\n\nNaam: ${name}\nAdres: ${body.adres ?? '-'}\nPostcode: ${body.postcode ?? '-'}\nWoonplaats: ${body.woonplaats ?? '-'}\nLand: ${body.land ?? '-'}\nGeboortedatum: ${body.geboortedatum ?? '-'}\nGeslacht: ${body.geslacht ?? '-'}\nEmail: ${email}\nTelefoon: ${body.phone ?? '-'}\nWandeling: ${wandeling}\nWilt boekje: ${body.wiltBoekje ? 'Ja' : 'Nee'}\nDieetwensen: ${body.dietary ?? '-'}\nOpmerking: ${body.message ?? '-'}\n`,
       });
     } catch {
       // Email failure is non-fatal

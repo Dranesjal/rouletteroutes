@@ -80,6 +80,29 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
         </dl>
       </div>
 
+      {/* Wandelkilometerboekje */}
+      {hike.wandelboekje && (
+        <div className="mb-8 rounded-xl overflow-hidden border" style={{ borderColor: '#4A7C59' }}>
+          <div className="px-5 py-3 font-bold text-sm flex items-center gap-2" style={{ background: '#4A7C59', color: 'white' }}>
+            📖 Officiële route met stempel
+          </div>
+          <div className="p-5 space-y-3 text-sm" style={{ background: '#F2F8F4', color: '#2C3E2E' }}>
+            <p>
+              Deze wandeling is een <strong>officiële eroute</strong>. Bij het startpunt ontvang je een officiële stempel in je <strong>Wandelkilometerboekje</strong>.
+            </p>
+            <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
+              <p className="font-bold mb-2" style={{ color: '#2C3E2E' }}>Wat is het Wandelkilometerboekje?</p>
+              <p style={{ color: '#3E5C45' }}>
+                Met het Wandelkilometerboekje houd je van elke wandeling de gelopen prestaties en ervaringen bij. Heb je bijvoorbeeld 250 km gewandeld, dan kun je het <strong>wandelprestatiekruis 250</strong> bestellen. Kijk hiervoor bij het onderwerp medailles.
+              </p>
+            </div>
+            <p className="font-medium" style={{ color: '#2C3E2E' }}>
+              Wil je een boekje? Vink dit aan bij de aanmelding — dan zorgen wij dat je een boekje ontvangt bij de start.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* CTA */}
       {hike.status === 'upcoming' && hike.registrationOpen && (
         <div className="text-center py-8 border-t" style={{ borderColor: '#EDD49A' }}>
