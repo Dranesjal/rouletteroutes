@@ -137,7 +137,7 @@ function AanmeldenForm() {
       {isVeluwe && (
         <div className="mb-8 rounded-xl overflow-hidden border" style={{ borderColor: '#EDD49A' }}>
           <div className="px-5 py-3 font-bold text-sm" style={{ background: '#4A7C59', color: 'white' }}>
-            📋 Informatie Veluwedag — 3 oktober 2026
+            📋 Informatie Veluwedag · 3 oktober 2026
           </div>
           <div className="p-5 space-y-3 text-sm" style={{ background: '#FDFAF4', color: '#3E2610' }}>
             <p>
@@ -149,7 +149,7 @@ function AanmeldenForm() {
             </div>
             <div className="flex items-start gap-2">
               <span>✅</span>
-              <p>Wij regelen alles van inschrijving tot en met de eventuele lunch — jij hoeft alleen te verschijnen.</p>
+              <p>Wij regelen alles van inschrijving tot en met de eventuele lunch. Jij hoeft alleen te verschijnen.</p>
             </div>
             <div className="flex items-start gap-2">
               <span>📱</span>

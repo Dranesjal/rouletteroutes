@@ -98,7 +98,7 @@ export default async function HomePage() {
           <h2 className="font-display text-2xl font-black text-center mb-10" style={{ color: '#2C1A0E' }}>Hoe het werkt</h2>
           <div className="grid sm:grid-cols-3 gap-8">
             {[
-              { icon: '🎲', title: 'Willekeurige route', desc: 'We kiezen elke keer een nieuwe bestemming en route — bos, stad, polder of kust. Geen vast plan.' },
+              { icon: '🎲', title: 'Willekeurige route', desc: 'We kiezen elke keer een nieuwe bestemming en route: bos, stad, polder of kust. Geen vast plan.' },
               { icon: '🚶', title: 'Aangenaam tempo', desc: 'We lopen op een tempo waarop iedereen kan meepraten. Geen wedstrijd, wél meters.' },
               { icon: '🍽️', title: 'Samen afsluiten', desc: 'Optioneel sluiten we af met een lunch. Kosten via tikkie met de groep.' },
             ].map((item) => (

@@ -17,7 +17,7 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "Roulette Routes Roamers — Dwalen met bedoeling",
+  title: "Roulette Routes Roamers | Dwalen met bedoeling",
   description: "Samen wandelen op willekeurige routes. Geen vast plan, wel goede gesprekken.",
   openGraph: {
     title: "Roulette Routes Roamers",

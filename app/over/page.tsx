@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export const metadata = { title: 'Over ons — Roulette Routes Roamers', description: 'Wie zijn de Roulette Routes Roamers en hoe werkt het?' };
+export const metadata = { title: 'Over ons | Roulette Routes Roamers', description: 'Wie zijn de Roulette Routes Roamers en hoe werkt het?' };
 
 export default function OverPage() {
   return (

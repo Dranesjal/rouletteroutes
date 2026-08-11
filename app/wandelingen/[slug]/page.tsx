@@ -8,7 +8,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const hike = await getHikeBySlug(slug);
   if (!hike) return {};
-  return { title: `${hike.title} — Roulette Routes Roamers`, description: hike.description.slice(0, 160) };
+  return { title: `${hike.title} | Roulette Routes Roamers`, description: hike.description.slice(0, 160) };
 }
 
 export default async function HikePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -101,14 +101,14 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
               <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
                 <p className="font-bold mb-2" style={{ color: '#2C3E2E' }}>Georganiseerde routes en stempels</p>
                 <p style={{ color: '#3E5C45' }}>
-                  Bij georganiseerde evenementen — zoals de Nijmeegse 4 Daagse of deze Veluwewandeltocht — is er een stempelpost aanwezig. Georganiseerde evenementen zijn vaak aangesloten bij de <strong>Koninklijke Wandelbond Nederland (KWbN)</strong>.
+                  Bij georganiseerde evenementen zoals de Nijmeegse 4 Daagse of deze Veluwewandeltocht is er een stempelpost aanwezig. Georganiseerde evenementen zijn vaak aangesloten bij de <strong>Koninklijke Wandelbond Nederland (KWbN)</strong>.
                 </p>
               </div>
 
               <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
                 <p className="font-bold mb-2" style={{ color: '#2C3E2E' }}>Start- en finishbureau</p>
                 <p style={{ color: '#3E5C45' }}>
-                  Bij de start of direct na de finish loop je naar de organisatietafel. Daar zit de organisatie klaar om een officiële stempel — en soms een sticker — van hun vereniging in jouw boekje te zetten.
+                  Bij de start of direct na de finish loop je naar de organisatietafel. Daar zit de organisatie klaar om een officiële stempel (en soms een sticker) van hun vereniging in jouw boekje te zetten.
                 </p>
               </div>
             </div>
@@ -116,7 +116,7 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
             <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
                 <p className="font-bold mb-1" style={{ color: '#2C3E2E' }}>Prijs Wandelkilometerboekje</p>
                 <p style={{ color: '#3E5C45' }}>
-                  Een Wandelkilometerboekje kost <strong>€ 3,50</strong>. Wil je een boekje? Vink dit aan bij de aanmelding — dan zorgen wij dat je een boekje ontvangt bij de start.
+                  Een Wandelkilometerboekje kost <strong>€ 3,50</strong>. Wil je een boekje? Vink dit aan bij de aanmelding, dan zorgen wij dat je een boekje ontvangt bij de start.
                 </p>
               </div>
           </div>
