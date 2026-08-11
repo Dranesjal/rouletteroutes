@@ -90,13 +90,30 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
             <p>
               Deze wandeling is een <strong>officiële eroute</strong>. Bij het startpunt ontvang je een officiële stempel in je <strong>Wandelkilometerboekje</strong>.
             </p>
-            <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
-              <p className="font-bold mb-2" style={{ color: '#2C3E2E' }}>Wat is het Wandelkilometerboekje?</p>
-              <p style={{ color: '#3E5C45' }}>
-                Met het Wandelkilometerboekje houd je van elke wandeling de gelopen prestaties en ervaringen bij. Heb je bijvoorbeeld 250 km gewandeld, dan kun je het <strong>wandelprestatiekruis 250</strong> bestellen. Kijk hiervoor bij het onderwerp medailles.
-              </p>
+            <div className="space-y-3">
+              <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
+                <p className="font-bold mb-2" style={{ color: '#2C3E2E' }}>Wat is het Wandelkilometerboekje?</p>
+                <p style={{ color: '#3E5C45' }}>
+                  Met het Wandelkilometerboekje houd je van elke wandeling de gelopen prestaties en ervaringen bij. Heb je bijvoorbeeld 250 km gewandeld, dan kun je het <strong>wandelprestatiekruis 250</strong> bestellen. Kijk hiervoor bij het onderwerp medailles.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
+                <p className="font-bold mb-2" style={{ color: '#2C3E2E' }}>Georganiseerde routes en stempels</p>
+                <p style={{ color: '#3E5C45' }}>
+                  Bij georganiseerde evenementen — zoals de Nijmeegse 4 Daagse of deze Veluwewandeltocht — is er een stempelpost aanwezig. Georganiseerde evenementen zijn vaak aangesloten bij de <strong>Koninklijke Wandelbond Nederland (KWbN)</strong>.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
+                <p className="font-bold mb-2" style={{ color: '#2C3E2E' }}>Start- en finishbureau</p>
+                <p style={{ color: '#3E5C45' }}>
+                  Bij de start of direct na de finish loop je naar de organisatietafel. Daar zit de organisatie klaar om een officiële stempel — en soms een sticker — van hun vereniging in jouw boekje te zetten.
+                </p>
+              </div>
             </div>
-            <p className="font-medium" style={{ color: '#2C3E2E' }}>
+
+            <p className="font-medium pt-1" style={{ color: '#2C3E2E' }}>
               Wil je een boekje? Vink dit aan bij de aanmelding — dan zorgen wij dat je een boekje ontvangt bij de start.
             </p>
           </div>
