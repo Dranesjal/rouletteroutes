@@ -12,6 +12,7 @@ export default function Nav() {
     { href: '/wandelingen', label: 'Wandelingen' },
     { href: '/over', label: 'Over ons' },
     { href: '/aanmelden', label: 'Aanmelden' },
+    { href: '/login', label: 'Inloggen' },
   ];
 
   const isActive = (href: string, exact?: boolean) =>
