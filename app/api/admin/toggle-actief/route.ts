@@ -9,21 +9,19 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-  const callerRole = profile?.role as string | undefined;
-  if (callerRole !== 'admin' && callerRole !== 'super_admin') {
+  const role = profile?.role as string | undefined;
+  if (role !== 'admin' && role !== 'super_admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { id, role } = await req.json();
-  const allowed = callerRole === 'super_admin'
-    ? ['roamer', 'admin', 'super_admin']
-    : ['roamer', 'admin'];
-
-  if (!id || !allowed.includes(role)) {
-    return NextResponse.json({ error: 'Niet toegestaan' }, { status: 400 });
+  const { id, actief } = await req.json();
+  if (!id || typeof actief !== 'boolean') {
+    return NextResponse.json({ error: 'id en actief vereist' }, { status: 400 });
   }
 
   const service = await createServiceClient();
-  await service.from('profiles').update({ role }).eq('id', id);
+  const { error } = await service.from('registrations').update({ actief }).eq('id', id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

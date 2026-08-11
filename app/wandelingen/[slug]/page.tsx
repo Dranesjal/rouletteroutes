@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAllHikes, getHikeBySlug, formatDate, formatDuration } from '@/lib/hikes';
+import { getAllHikes, getHikeBySlug, formatDate, formatDuration, Hike } from '@/lib/hikes';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +13,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function HikePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const hike = await getHikeBySlug(slug);
+  const [hike, allHikes] = await Promise.all([getHikeBySlug(slug), getAllHikes()]);
   if (!hike) notFound();
+
+  const nextHike: Hike | null = allHikes.find(
+    h => h.status === 'upcoming' && h.registrationOpen && h.slug !== slug
+  ) ?? null;
 
   const difficultyLabel = { easy: 'Makkelijk', moderate: 'Gemiddeld', hard: 'Zwaar' }[hike.difficulty];
 
@@ -134,7 +138,13 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
       {hike.status === 'completed' && (
         <div className="text-center py-8 border-t" style={{ borderColor: '#EDD49A' }}>
           <p className="text-base mb-4" style={{ color: '#5C3D1E' }}>Deze wandeling heeft plaatsgevonden. Wil je mee met de volgende?</p>
-          <Link href="/aanmelden" className="btn-primary">Aanmelden voor volgende wandeling</Link>
+          {nextHike ? (
+            <Link href={`/wandelingen/${nextHike.slug}`} className="btn-primary">
+              Volgende wandeling: {nextHike.title} →
+            </Link>
+          ) : (
+            <Link href="/wandelingen" className="btn-primary">Bekijk alle wandelingen</Link>
+          )}
         </div>
       )}
     </div>

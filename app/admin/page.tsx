@@ -17,7 +17,8 @@ export default async function AdminPage() {
     .eq('id', user.id)
     .single();
 
-  if (profile?.role !== 'admin') {
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
+  if (!isAdmin) {
     return (
       <div className="max-w-sm mx-auto px-4 py-20 text-center">
         <p className="text-4xl mb-4">🚫</p>
@@ -27,11 +28,11 @@ export default async function AdminPage() {
     );
   }
 
-  // Fetch data server-side with service role (bypasses RLS)
   const service = await createServiceClient();
-  const [{ data: registrations }, { data: profiles }] = await Promise.all([
+  const [{ data: registrations }, { data: profiles }, { data: kosten }] = await Promise.all([
     service.from('registrations').select('*').order('registered_at', { ascending: false }),
     service.from('profiles').select('*').order('created_at', { ascending: false }),
+    service.from('wandeling_kosten').select('*').order('created_at'),
   ]);
 
   const hikes = STATIC_HIKES.map(h => ({
@@ -45,9 +46,11 @@ export default async function AdminPage() {
   return (
     <AdminClient
       adminName={profile.name || user.email || 'Admin'}
+      adminRole={profile.role as 'admin' | 'super_admin'}
       registrations={registrations ?? []}
       roamers={profiles ?? []}
       hikes={hikes}
+      kosten={kosten ?? []}
     />
   );
 }

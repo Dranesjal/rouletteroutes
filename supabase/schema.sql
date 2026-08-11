@@ -128,11 +128,29 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- Kosten per wandeling (variabel per evenement)
+create table if not exists public.wandeling_kosten (
+  id             uuid default gen_random_uuid() primary key,
+  wandeling_slug text not null,
+  omschrijving   text not null,
+  bedrag         decimal(10,2) not null default 0,
+  created_at     timestamptz default now()
+);
+alter table public.wandeling_kosten enable row level security;
+-- Alleen toegankelijk via service role (admin API)
+
+create index if not exists wandeling_kosten_slug_idx
+  on public.wandeling_kosten(wandeling_slug);
+
 -- ============================================================
 -- Migraties (veilig her-uitvoeren als tabel al bestaat)
 -- ============================================================
 alter table public.registrations add column if not exists wil_lunchen   boolean default false;
 alter table public.registrations add column if not exists profile_id    uuid references auth.users(id) on delete set null;
+-- Betaling & status
+alter table public.registrations add column if not exists betaald       boolean default false;
+alter table public.registrations add column if not exists betaald_op    timestamptz;
+alter table public.registrations add column if not exists actief        boolean default true;
 
 -- ============================================================
 -- Maak jezelf admin (vervang het e-mailadres)
