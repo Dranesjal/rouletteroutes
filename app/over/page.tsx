@@ -33,7 +33,7 @@ export default function OverPage() {
         <dl className="space-y-4">
           {[
             { term: 'Roulette', def: 'De bestemming en route worden willekeurig bepaald. Niemand weet van tevoren precies waar we naartoe gaan. Dat is de grap én de verrassing.' },
-            { term: 'Routes', def: 'We lopen diverse routes door heel Nederland. Soms door een wijk, soms over buitenpaden, langs een dijk of door de natuur. Elke wandeling is anders.' },
+            { term: 'Routes', def: 'We lopen diverse routes door heel Nederland. Het kan door het bos zijn of gewoon langs het strand of door een wijk. De lengte van de route is ook elke keer anders.' },
             { term: 'Roamers', def: 'Dat zijn wij. Roamers dwalen met bedoeling. Niet haastig, niet competitief, gewoon lopen, praten, genieten. Jij ook een Roamer? Dan ben je welkom.' },
           ].map(({ term, def }) => (
             <div key={term} className="flex gap-4">
