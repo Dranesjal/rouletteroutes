@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { STATIC_HIKES } from '@/lib/hikes';
 import AdminClient from './AdminClient';
 
 export const dynamic = 'force-dynamic';
@@ -33,11 +34,20 @@ export default async function AdminPage() {
     service.from('profiles').select('*').order('created_at', { ascending: false }),
   ]);
 
+  const hikes = STATIC_HIKES.map(h => ({
+    slug: h.slug,
+    title: h.title,
+    date: h.date,
+    distanceKm: h.distanceKm,
+    status: h.status,
+  }));
+
   return (
     <AdminClient
       adminName={profile.name || user.email || 'Admin'}
       registrations={registrations ?? []}
       roamers={profiles ?? []}
+      hikes={hikes}
     />
   );
 }

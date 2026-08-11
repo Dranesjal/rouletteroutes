@@ -28,6 +28,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Dit e-mailadres is al aangemeld voor deze wandeling.' }, { status: 409 });
   }
 
+  // Koppel direct aan Roamer-account als dit e-mail al geregistreerd is
+  const { data: linkedId } = await service.rpc('get_user_id_by_email', {
+    p_email: email.trim().toLowerCase(),
+  });
+
   const { data, error } = await service.from('registrations').insert({
     wandeling: wandeling ?? 'unknown',
     name: name.trim(),
@@ -43,6 +48,7 @@ export async function POST(req: NextRequest) {
     message: body.message?.trim() ?? '',
     wilt_boekje: body.wiltBoekje === true,
     wil_lunchen: body.wilLunchen === true,
+    profile_id: linkedId ?? null,
   }).select('id').single();
 
   if (error) {

@@ -28,6 +28,8 @@ create table if not exists public.registrations (
   message        text default '',
   wilt_boekje    boolean default false,
   wil_lunchen    boolean default false,
+  -- nullable: gasten hebben geen account, Roamers krijgen dit gevuld via trigger of register-API
+  profile_id     uuid references auth.users(id) on delete set null,
   registered_at  timestamptz default now()
 );
 
@@ -35,7 +37,7 @@ create table if not exists public.registrations (
 create table if not exists public.walk_records (
   id           uuid default gen_random_uuid() primary key,
   user_id      uuid references auth.users on delete cascade not null,
-  type         text not null default 'personal', -- 'personal' | 'organized'
+  type         text not null default 'rrr', -- 'rrr' | 'personal'
   walk_slug    text,           -- koppeling naar RRR-wandeling
   title        text not null,
   lat          double precision,
@@ -44,17 +46,29 @@ create table if not exists public.walk_records (
   date         date,
   is_circular  boolean default true,
   notes        text default '',
-  verified     boolean default false, -- admin goedgekeurd
-  created_at   timestamptz default now()
+  verified     boolean default false,
+  created_at   timestamptz default now(),
+  -- voorkom dubbele walk_records per Roamer per wandeling
+  unique (user_id, walk_slug)
 );
+
+-- ============================================================
+-- Indexes
+-- ============================================================
+
+create index if not exists registrations_email_idx
+  on public.registrations(lower(email));
+
+create index if not exists registrations_profile_id_idx
+  on public.registrations(profile_id);
 
 -- ============================================================
 -- Row Level Security
 -- ============================================================
 
-alter table public.profiles     enable row level security;
-alter table public.registrations enable row level security;
-alter table public.walk_records  enable row level security;
+alter table public.profiles      enable row level security;
+alter table public.registrations  enable row level security;
+alter table public.walk_records   enable row level security;
 
 -- Profiles: eigen profiel lezen en updaten
 create policy "Eigen profiel lezen"   on public.profiles for select using (auth.uid() = id);
@@ -64,14 +78,26 @@ create policy "Eigen profiel updaten" on public.profiles for update using (auth.
 -- (geen public policies — alleen server-side met service key)
 
 -- Walk records: eigen walks beheren, geverifieerde zien iedereen
-create policy "Eigen walks lezen"    on public.walk_records for select using (auth.uid() = user_id);
-create policy "Geverifieerde zien"   on public.walk_records for select using (verified = true);
-create policy "Eigen walks toevoegen" on public.walk_records for insert with check (auth.uid() = user_id);
-create policy "Eigen walks updaten"  on public.walk_records for update using (auth.uid() = user_id);
+create policy "Eigen walks lezen"       on public.walk_records for select using (auth.uid() = user_id);
+create policy "Geverifieerde zien"      on public.walk_records for select using (verified = true);
+create policy "Eigen walks toevoegen"   on public.walk_records for insert with check (auth.uid() = user_id);
+create policy "Eigen walks updaten"     on public.walk_records for update using (auth.uid() = user_id);
 create policy "Eigen walks verwijderen" on public.walk_records for delete using (auth.uid() = user_id);
 
 -- ============================================================
--- Trigger: maak profiel aan bij nieuwe gebruiker
+-- Helper: zoek user ID op via e-mail (gebruikt door register-API)
+-- ============================================================
+
+create or replace function public.get_user_id_by_email(p_email text)
+returns uuid
+language sql
+security definer set search_path = public
+as $$
+  select id from auth.users where lower(email) = lower(p_email) limit 1;
+$$;
+
+-- ============================================================
+-- Trigger: maak profiel aan + claim gastregistraties bij signup
 -- ============================================================
 
 create or replace function public.handle_new_user()
@@ -80,11 +106,19 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
+  -- Profiel aanmaken
   insert into public.profiles (id, name)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1))
   );
+
+  -- Koppel eerdere gastregistraties met hetzelfde e-mailadres
+  update public.registrations
+  set profile_id = new.id
+  where lower(email) = lower(new.email)
+    and profile_id is null;
+
   return new;
 end;
 $$;
@@ -95,9 +129,10 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 
 -- ============================================================
--- Als de tabel al bestaat: voeg wil_lunchen kolom toe
+-- Migraties (veilig her-uitvoeren als tabel al bestaat)
 -- ============================================================
-alter table public.registrations add column if not exists wil_lunchen boolean default false;
+alter table public.registrations add column if not exists wil_lunchen   boolean default false;
+alter table public.registrations add column if not exists profile_id    uuid references auth.users(id) on delete set null;
 
 -- ============================================================
 -- Maak jezelf admin (vervang het e-mailadres)

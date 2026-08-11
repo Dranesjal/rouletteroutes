@@ -19,6 +19,7 @@ interface Registration {
   message: string;
   wilt_boekje: boolean;
   wil_lunchen: boolean;
+  profile_id: string | null;
   registered_at: string;
 }
 
@@ -29,18 +30,29 @@ interface Roamer {
   created_at: string;
 }
 
+interface HikeSummary {
+  slug: string;
+  title: string;
+  date: string;
+  distanceKm: number;
+  status: 'upcoming' | 'completed';
+}
+
 interface Props {
   adminName: string;
   registrations: Registration[];
   roamers: Roamer[];
+  hikes: HikeSummary[];
 }
 
-type Tab = 'registrations' | 'lunch' | 'roamers';
+type Tab = 'registrations' | 'lunch' | 'wandelingen' | 'roamers';
 
-export default function AdminClient({ adminName, registrations, roamers }: Props) {
+export default function AdminClient({ adminName, registrations, roamers, hikes }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('registrations');
   const [filter, setFilter] = useState('');
+  const [completing, setCompleting] = useState<string | null>(null);
+  const [completeResults, setCompleteResults] = useState<Record<string, { created: number; message?: string } | { error: string }>>({});
 
   const uniqueWandelingen = [...new Set(registrations.map(r => r.wandeling))];
   const filtered = registrations.filter(r => !filter || r.wandeling === filter);
@@ -69,6 +81,21 @@ export default function AdminClient({ adminName, registrations, roamers }: Props
     router.refresh();
   };
 
+  const completeHike = async (slug: string) => {
+    setCompleting(slug);
+    try {
+      const res = await fetch('/api/admin/complete-hike', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      });
+      const data = await res.json();
+      setCompleteResults(prev => ({ ...prev, [slug]: data }));
+    } finally {
+      setCompleting(null);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
@@ -86,6 +113,7 @@ export default function AdminClient({ adminName, registrations, roamers }: Props
         {([
           ['registrations', `Aanmeldingen (${registrations.length})`],
           ['lunch', `Lunch (${registrations.filter(r => r.wil_lunchen).length})`],
+          ['wandelingen', `Wandelingen (${uniqueWandelingen.length})`],
           ['roamers', `Roamers (${roamers.length})`],
         ] as [Tab, string][]).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)}
@@ -96,7 +124,7 @@ export default function AdminClient({ adminName, registrations, roamers }: Props
         ))}
       </div>
 
-      {/* Registrations */}
+      {/* ── Aanmeldingen ── */}
       {tab === 'registrations' && (
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -115,7 +143,7 @@ export default function AdminClient({ adminName, registrations, roamers }: Props
               <table className="w-full text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 <thead style={{ background: '#F5E4C0' }}>
                   <tr>
-                    {['Naam', 'Woonplaats', 'Geboortedatum', 'Geslacht', 'E-mail', 'Telefoon', 'Wandeling', 'Lunch', 'Boekje', 'Dieet', 'Opmerking', 'Datum'].map(h => (
+                    {['Naam', 'Woonplaats', 'Geboortedatum', 'Geslacht', 'E-mail', 'Telefoon', 'Wandeling', 'Account', 'Lunch', 'Boekje', 'Dieet', 'Opmerking', 'Datum'].map(h => (
                       <th key={h} className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wide whitespace-nowrap" style={{ color: '#8B5A2B' }}>{h}</th>
                     ))}
                   </tr>
@@ -130,6 +158,12 @@ export default function AdminClient({ adminName, registrations, roamers }: Props
                       <td className="px-4 py-3">{r.email}</td>
                       <td className="px-4 py-3 whitespace-nowrap">{r.phone || '-'}</td>
                       <td className="px-4 py-3">{r.wandeling}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded"
+                          style={{ background: r.profile_id ? '#D1FAE5' : '#F3F4F6', color: r.profile_id ? '#065F46' : '#6B7280' }}>
+                          {r.profile_id ? 'Roamer' : 'Gast'}
+                        </span>
+                      </td>
                       <td className="px-4 py-3">{r.wil_lunchen ? '✅ Ja' : 'Nee'}</td>
                       <td className="px-4 py-3">{r.wilt_boekje ? '✅ Ja' : 'Nee'}</td>
                       <td className="px-4 py-3">{r.dietary || '-'}</td>
@@ -146,7 +180,7 @@ export default function AdminClient({ adminName, registrations, roamers }: Props
         </div>
       )}
 
-      {/* Lunch overview per wandeling */}
+      {/* ── Lunch per wandeling ── */}
       {tab === 'lunch' && (
         <div className="space-y-8">
           {uniqueWandelingen.length === 0 ? (
@@ -193,7 +227,118 @@ export default function AdminClient({ adminName, registrations, roamers }: Props
         </div>
       )}
 
-      {/* Roamers */}
+      {/* ── Wandelingen beheer ── */}
+      {tab === 'wandelingen' && (
+        <div className="space-y-5">
+          <p className="text-sm mb-2" style={{ color: '#8B5A2B' }}>
+            Sluit een wandeling af om voor alle deelnemers <em>met een Roamer-account</em> automatisch een looprecord aan te maken.
+            Gasten zonder account krijgen hun record als ze later alsnog een account aanmaken.
+          </p>
+          {uniqueWandelingen.length === 0 ? (
+            <p className="text-center py-12" style={{ color: '#8B5A2B' }}>Geen aanmeldingen.</p>
+          ) : (
+            uniqueWandelingen.map(slug => {
+              const hike = hikes.find(h => h.slug === slug);
+              const regs = registrations.filter(r => r.wandeling === slug);
+              const linked = regs.filter(r => r.profile_id !== null);
+              const guests = regs.filter(r => r.profile_id === null);
+              const result = completeResults[slug];
+              const isLoading = completing === slug;
+
+              return (
+                <div key={slug} className="card p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div>
+                      <h3 className="font-display font-bold text-lg" style={{ color: '#2C1A0E' }}>
+                        {hike?.title ?? slug}
+                      </h3>
+                      {hike && (
+                        <p className="text-sm mt-0.5" style={{ color: '#8B5A2B' }}>
+                          {new Date(hike.date).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                          {' · '}{hike.distanceKm} km
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => completeHike(slug)}
+                      disabled={isLoading || !!result}
+                      className="text-sm font-semibold px-4 py-2 rounded-lg flex-shrink-0 transition-all"
+                      style={{
+                        background: result ? '#D1FAE5' : isLoading ? '#F5E4C0' : '#2C1A0E',
+                        color: result ? '#065F46' : isLoading ? '#8B5A2B' : 'white',
+                        cursor: result ? 'default' : 'pointer',
+                      }}>
+                      {isLoading ? 'Bezig...' : result ? '✓ Afgerond' : 'Wandeling afsluiten'}
+                    </button>
+                  </div>
+
+                  {/* Statistieken */}
+                  <div className="flex gap-4 mt-4 text-sm flex-wrap">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full inline-block" style={{ background: '#C4622D' }} />
+                      <strong>{regs.length}</strong> aanmeldingen
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full inline-block" style={{ background: '#4A7C59' }} />
+                      <strong>{linked.length}</strong> Roamer-account
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full inline-block" style={{ background: '#8B5A2B' }} />
+                      <strong>{guests.length}</strong> gast
+                    </span>
+                  </div>
+
+                  {/* Resultaat na afsluiten */}
+                  {result && (
+                    <div className="mt-3 text-sm px-3 py-2 rounded-lg"
+                      style={{ background: 'error' in result ? '#FEF2F2' : '#D1FAE5', color: 'error' in result ? '#991B1B' : '#065F46' }}>
+                      {'error' in result
+                        ? `Fout: ${result.error}`
+                        : result.message
+                          ? result.message
+                          : `${result.created} looprecord${result.created !== 1 ? 's' : ''} aangemaakt.`}
+                    </div>
+                  )}
+
+                  {/* Deelnemers met account */}
+                  {linked.length > 0 && (
+                    <details className="mt-3">
+                      <summary className="text-xs font-semibold cursor-pointer" style={{ color: '#4A7C59' }}>
+                        Toon {linked.length} Roamer{linked.length !== 1 ? 's' : ''} die record krijgen
+                      </summary>
+                      <ul className="mt-2 text-xs space-y-1" style={{ color: '#2C1A0E' }}>
+                        {linked.map(r => (
+                          <li key={r.id} className="flex gap-2">
+                            <span className="font-semibold">{r.name}</span>
+                            <span style={{ color: '#8B5A2B' }}>{r.email}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+
+                  {/* Gasten zonder account */}
+                  {guests.length > 0 && (
+                    <details className="mt-2">
+                      <summary className="text-xs font-semibold cursor-pointer" style={{ color: '#8B5A2B' }}>
+                        Toon {guests.length} gast{guests.length !== 1 ? 'en' : ''} zonder account
+                      </summary>
+                      <ul className="mt-2 text-xs space-y-1" style={{ color: '#5C3D1E' }}>
+                        {guests.map(r => (
+                          <li key={r.id}>{r.name} ({r.email})</li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* ── Roamers ── */}
       {tab === 'roamers' && (
         <div className="overflow-x-auto rounded-xl border" style={{ borderColor: '#EDD49A' }}>
           <table className="w-full text-sm">
