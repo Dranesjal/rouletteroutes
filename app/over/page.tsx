@@ -68,7 +68,7 @@ export default function OverPage() {
         <div className="space-y-5">
           {[
             { n: '1', title: 'We kiezen een datum', body: 'Zodra de volgende wandeldag gepland is, zetten we hem op de site. Je kunt je aanmelden zodat we weten wie er meekomt.' },
-            { n: '2', title: 'De route wordt bekendgemaakt', body: 'Kort voor de wandeling ontvangen aangemelde Roamers de locatiedetails. Verrassing hoort erbij.' },
+            { n: '2', title: 'De route wordt bekendgemaakt', body: 'Kort voor de wandeling ontvangen aangemelde Roamers de locatiedetails. Soms is er aanmelding nodig bij een officiële route — dan komen de details vaak eerder en via die organisatie zelf.' },
             { n: '3', title: 'We vertrekken samen', body: 'Op de afgesproken plek en tijd vertrekken we. Tempo is rustig: iedereen kan meepraten.' },
             { n: '4', title: 'Optioneel: lunch of borrel', body: 'Sommige wandelingen sluiten we af met een gezamenlijke lunch of borrel. Kosten worden eerlijk verdeeld via Tikkie.' },
           ].map(({ n, title, body }) => (

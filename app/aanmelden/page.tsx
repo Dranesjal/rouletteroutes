@@ -118,9 +118,18 @@ function AanmeldenForm() {
           Bedankt voor je aanmelding. Je ontvangt een bevestiging per e-mail met verdere details.
         </p>
         {isVeluwe && (
-          <p className="text-sm mb-6 p-3 rounded-lg" style={{ background: '#FFF8EC', color: '#7A4B00', border: '1px solid #F5D78A' }}>
-            Voor de Veluwedag ontvang je een Tikkie voor de entree (dagkaart € 13,85 p.p.). Lunch wordt apart geregeld indien van toepassing.
-          </p>
+          <div className="text-sm mb-6 p-4 rounded-xl text-left space-y-2" style={{ background: '#F2F8F4', border: '1px solid #b6d9c0', color: '#2C3E2E' }}>
+            <p className="font-bold" style={{ color: '#2C3E2E' }}>📬 Bevestigingsmail van de organisatie</p>
+            <p>
+              Je ontvangt een e-mail van <strong>Stg het Nationale Park de Hoge Veluwe</strong> met als onderwerp:
+            </p>
+            <p className="px-3 py-2 rounded font-semibold" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
+              Inschrijving Hoge Veluwe Wandeldag 2026
+            </p>
+            <p style={{ color: '#3E5C45' }}>
+              Hierin vind je de officiële bevestiging en verdere instructies voor de dag. Controleer ook je spammap als je de mail niet ziet.
+            </p>
+          </div>
         )}
         <a href="/" className="btn-primary">Terug naar home</a>
       </div>
