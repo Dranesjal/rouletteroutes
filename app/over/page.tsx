@@ -11,7 +11,7 @@ export default function OverPage() {
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#C4622D' }}>Wie zijn wij</p>
         <h1 className="font-display text-5xl font-black leading-tight mb-5" style={{ color: '#2C1A0E' }}>
           Welkom bij de<br />
-          <span style={{ color: '#C4622D' }}>Roamers</span>
+          <span style={{ color: '#C4622D' }}>Roulette Routes Roamers</span>
         </h1>
         <p className="text-sm font-bold uppercase tracking-widest mb-6" style={{ color: '#8B5A2B' }}>Dwalen met bedoeling.</p>
         <div className="space-y-4 text-lg leading-relaxed" style={{ color: '#5C3D1E' }}>
@@ -33,7 +33,7 @@ export default function OverPage() {
         <dl className="space-y-4">
           {[
             { term: 'Roulette', def: 'De bestemming en route worden willekeurig bepaald. Niemand weet van tevoren precies waar we naartoe gaan. Dat is de grap én de verrassing.' },
-            { term: 'Routes', def: 'We lopen diverse routes door heel Nederland. Het kan door het bos zijn of gewoon langs het strand of door een wijk. De lengte van de route is ook elke keer anders.' },
+            { term: 'Routes', def: 'We lopen diverse routes door heel Nederland. Het kan door het bos zijn of gewoon langs het strand of door een wijk. De lengte van de route is ook elke keer anders. Soms lopen we een officiële route, zoals een erkende wandeltocht. Dan is er een stempelpost aanwezig en kun je een officiële stempel in je Wandelkilometerboekje halen.' },
             { term: 'Roamers', def: 'Dat zijn wij. Roamers dwalen met bedoeling. Niet haastig, niet competitief, gewoon lopen, praten, genieten. Jij ook een Roamer? Dan ben je welkom.' },
           ].map(({ term, def }) => (
             <div key={term} className="flex gap-4">
@@ -42,6 +42,24 @@ export default function OverPage() {
             </div>
           ))}
         </dl>
+      </div>
+
+      {/* Wandelkilometerboekje */}
+      <div className="mb-10 rounded-xl overflow-hidden border" style={{ borderColor: '#4A7C59' }}>
+        <div className="px-5 py-3 font-bold text-sm flex items-center gap-2" style={{ background: '#4A7C59', color: 'white' }}>
+          📖 Het Wandelkilometerboekje
+        </div>
+        <div className="p-5 space-y-4 text-sm leading-relaxed" style={{ background: '#F2F8F4', color: '#2C3E2E' }}>
+          <p>
+            Bij sommige wandelingen lopen we een <strong>officiële route</strong> die is aangesloten bij de <strong>Koninklijke Wandelbond Nederland (KWbN)</strong>. Op zulke routes is een stempelpost aanwezig waar je een officiële stempel in je Wandelkilometerboekje kunt halen.
+          </p>
+          <p>
+            Het Wandelkilometerboekje is een persoonlijk boekje waarin je elke wandeling bijhoudt. Je schrijft de datum, de route en de afstand op, en bij officiële routes ontvang je een stempel van de organisatie. Heb je genoeg kilometers bij elkaar, dan kun je een <strong>wandelprestatiekruis</strong> aanvragen, bijvoorbeeld bij 250 km.
+          </p>
+          <p>
+            Een boekje kost <strong>€ 3,50</strong>. Bij wandelingen met een officiële stempelpost kun je bij de aanmelding aangeven of je een boekje wilt. We zorgen dan dat je het bij de start ontvangt.
+          </p>
+        </div>
       </div>
 
       {/* How it works */}
@@ -90,7 +108,7 @@ export default function OverPage() {
         <p className="text-sm mb-6" style={{ color: '#8B5A2B' }}>Bekijk de aankomende wandelingen en meld je aan.</p>
         <div className="flex gap-3 justify-center flex-wrap">
           <Link href="/wandelingen" className="btn-primary">Bekijk wandelingen</Link>
-          <Link href="/aanmelden" className="btn-secondary" style={{ borderColor: '#5C3D1E', color: '#D5B08A' }}>Aanmelden</Link>
+          <Link href="/signup" className="btn-secondary" style={{ borderColor: '#5C3D1E', color: '#D5B08A' }}>Word Roamer</Link>
         </div>
       </div>
 

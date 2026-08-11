@@ -19,18 +19,28 @@ export default async function HomePage() {
         <div className="relative max-w-5xl mx-auto px-4 py-20 md:py-28">
           <div className="max-w-xl">
             <p className="text-sm font-bold uppercase tracking-widest mb-4" style={{ color: '#C4622D' }}>
-              Welkom, Roamer
+              Welkom bij de Roulette Routes Roamers
             </p>
             <h1 className="font-display text-4xl md:text-5xl font-black leading-tight mb-6" style={{ color: '#F5E4C0' }}>
               Geen vaste route.<br />Wel goede<br />
               <span style={{ color: '#C4622D' }}>gezelschap.</span>
             </h1>
-            <p className="text-lg leading-relaxed mb-8" style={{ color: '#D5B08A' }}>
+            <p className="text-lg leading-relaxed mb-6" style={{ color: '#D5B08A' }}>
               Wij zijn de Roamers: een informele wandelgroep die elke keer een nieuwe bestemming kiest. Soms bos, soms heide, soms polder. Wat altijd vaststaat? Goede gesprekken, een aangenaam tempo en soms een lunch achteraf.
             </p>
+            <div className="flex gap-4 mb-8 text-sm" style={{ color: '#A07850' }}>
+              <div className="flex items-start gap-2">
+                <span>✓</span>
+                <span>Gratis aanmelden per wandeling, geen account nodig</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span>✓</span>
+                <span>Met een account bewaar je al je wandelgeschiedenis</span>
+              </div>
+            </div>
             <div className="flex gap-3 flex-wrap">
               <Link href="/wandelingen" className="btn-primary">Bekijk wandelingen</Link>
-              <Link href="/aanmelden" className="btn-secondary" style={{ borderColor: '#5C3D1E', color: '#D5B08A' }}>Aanmelden</Link>
+              <Link href="/signup" className="btn-secondary" style={{ borderColor: '#5C3D1E', color: '#D5B08A' }}>Word Roamer</Link>
             </div>
           </div>
         </div>
@@ -52,11 +62,7 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-            {nextHike.registrationOpen ? (
-              <Link href={`/aanmelden?wandeling=${nextHike.slug}`} className="btn-primary flex-shrink-0">Aanmelden →</Link>
-            ) : (
-              <Link href={`/wandelingen/${nextHike.slug}`} className="btn-secondary flex-shrink-0">Bekijken →</Link>
-            )}
+            <Link href={`/wandelingen/${nextHike.slug}`} className="btn-primary flex-shrink-0">Bekijk wandeling →</Link>
           </div>
         </section>
       )}
@@ -145,8 +151,12 @@ export default async function HomePage() {
       <section style={{ background: '#2C1A0E' }}>
         <div className="max-w-5xl mx-auto px-4 py-16 text-center">
           <h2 className="font-display text-3xl font-black mb-4" style={{ color: '#F5E4C0' }}>Ga je mee wandelen?</h2>
-          <p className="text-base mb-8" style={{ color: '#8B5A2B' }}>Meld je aan voor de volgende wandeling. Geen kosten, wel goede gezelschap.</p>
-          <Link href="/aanmelden" className="btn-primary">Aanmelden</Link>
+          <p className="text-base mb-3" style={{ color: '#D5B08A' }}>Aanmelden voor een wandeling is gratis en kan gewoon met je e-mailadres.</p>
+          <p className="text-sm mb-8" style={{ color: '#8B5A2B' }}>Word Roamer en houd je wandelgeschiedenis bij.</p>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <Link href="/wandelingen" className="btn-primary">Bekijk wandelingen</Link>
+            <Link href="/signup" className="btn-secondary" style={{ borderColor: '#5C3D1E', color: '#D5B08A' }}>Word Roamer</Link>
+          </div>
         </div>
       </section>
     </>
