@@ -32,7 +32,7 @@ export default function OverPage() {
         <h2 className="font-display font-bold text-xl mb-4" style={{ color: '#2C1A0E' }}>Wat betekent de naam?</h2>
         <dl className="space-y-4">
           {[
-            { term: 'Roulette', def: 'De bestemming en route worden willekeurig bepaald. Niemand weet van tevoren precies waar we naartoe gaan. Dat is de grap én de verrassing.' },
+            { term: 'Roulette', def: 'De bestemming, de route én het gezelschap zijn willekeurig. Niemand weet van tevoren precies waar we naartoe gaan of wie er meeloopt. Eén ding staat vast: we bewandelen samen hetzelfde pad.' },
             { term: 'Routes', def: 'We lopen diverse routes door heel Nederland. Het kan door het bos zijn of gewoon langs het strand of door een wijk. De lengte van de route is ook elke keer anders. Soms lopen we een officiële route, zoals een erkende wandeltocht. Dan is er een stempelpost aanwezig en kun je een officiële stempel in je Wandelkilometerboekje halen.' },
             { term: 'Roamers', def: 'Dat zijn wij. Roamers dwalen met bedoeling. Niet haastig, niet competitief, gewoon lopen, praten, genieten. Jij ook een Roamer? Dan ben je welkom.' },
           ].map(({ term, def }) => (
