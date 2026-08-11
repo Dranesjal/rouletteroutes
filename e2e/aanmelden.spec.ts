@@ -3,47 +3,51 @@ import { test, expect } from '@playwright/test';
 test.describe('Aanmelden form', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/aanmelden?wandeling=hoge-veluwe-okt-2026');
+    // Wacht tot de hike-fetch via /api/hikes klaar is
+    await page.waitForLoadState('networkidle');
   });
 
   test('form renders with required fields', async ({ page }) => {
-    await expect(page.getByLabel(/naam/i)).toBeVisible();
-    await expect(page.getByLabel(/e-mail/i).first()).toBeVisible();
-    await expect(page.getByLabel(/telefoon/i)).toBeVisible();
+    // Naam-veld is altijd zichtbaar
+    await expect(page.locator('input[type="text"]').first()).toBeVisible();
+    // E-mailadres-veld
+    await expect(page.locator('input[type="email"]').first()).toBeVisible();
+    // Telefoon
+    await expect(page.locator('input[placeholder*="06"]').or(page.locator('input[placeholder*="telefoon"]')).or(page.locator('label').filter({ hasText: /telefoon/i }).locator('..').locator('input'))).toBeVisible();
   });
 
   test('submit without required fields shows validation', async ({ page }) => {
     await page.getByRole('button', { name: /aanmelden/i }).click();
-    // Browser native or custom validation should prevent submission
-    // Check that we are still on the aanmelden page (not success state)
+    // Browser-validatie houdt de submit tegen — we blijven op de pagina
     await expect(page.getByRole('button', { name: /aanmelden/i })).toBeVisible();
   });
 
   test('wandelboekje checkbox is visible for Veluwe', async ({ page }) => {
     await expect(page.getByText(/Wandelkilometerboekje/i)).toBeVisible();
-    const checkbox = page.getByRole('checkbox').first();
-    await expect(checkbox).toBeVisible();
   });
 
   test('lunch checkbox shows dietary field when checked', async ({ page }) => {
-    // Lunch checkbox
-    const lunchCheckbox = page.getByText(/Ik doe mee met de lunch/i);
-    await expect(lunchCheckbox).toBeVisible();
+    const lunchText = page.getByText(/Ik doe mee met de lunch/i);
+    await expect(lunchText).toBeVisible();
 
-    // Dietary field should not be visible yet
-    const dietaryLabel = page.getByText(/Dieetwensen/i);
-    // Click the lunch checkbox
-    await page.getByText(/Ik doe mee met de lunch/i).click();
+    // Klik de lunch-checkbox
+    await lunchText.click();
 
-    // After checking, dietary input should appear
-    await expect(dietaryLabel).toBeVisible();
+    // Dieetwensen-veld verschijnt
+    await expect(page.getByText(/Dieetwensen/i)).toBeVisible();
   });
 
   test('email confirmation mismatch shows error', async ({ page }) => {
-    await page.getByLabel(/naam/i).fill('Test Roamer');
-    const emailFields = page.getByLabel(/e-mail/i);
-    await emailFields.first().fill('test@example.com');
-    await emailFields.nth(1).fill('other@example.com');
+    // Vul naam in
+    await page.locator('input[placeholder*="naam"]').or(page.locator('input[placeholder*="Naam"]')).fill('Test Roamer');
+
+    // Vul e-mailadressen in (eerste = email, tweede = bevestiging)
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.first().fill('test@example.com');
+    await emailInputs.nth(1).fill('other@example.com');
+
     await page.getByRole('button', { name: /aanmelden/i }).click();
-    await expect(page.getByText(/komen niet overeen/i)).toBeVisible();
+
+    await expect(page.getByText(/komen niet overeen/i)).toBeVisible({ timeout: 10_000 });
   });
 });

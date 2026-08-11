@@ -11,7 +11,8 @@ test.describe('Homepage', () => {
     await page.goto('/');
     await expect(page.getByRole('link', { name: /wandelingen/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /over/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /aanmelden/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /inloggen/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /word roamer/i })).toBeVisible();
   });
 
   test('CTA links to aanmelden', async ({ page }) => {
