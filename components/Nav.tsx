@@ -11,8 +11,11 @@ export default function Nav() {
     { href: '/', label: 'Home', exact: true },
     { href: '/wandelingen', label: 'Wandelingen' },
     { href: '/over', label: 'Over ons' },
-    { href: '/aanmelden', label: 'Aanmelden' },
-    { href: '/login', label: 'Inloggen' },
+  ];
+
+  const authLinks = [
+    { href: '/signup', label: 'Word Roamer', cta: true },
+    { href: '/login', label: 'Inloggen', cta: false },
   ];
 
   const isActive = (href: string, exact?: boolean) =>
@@ -42,6 +45,20 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
+          <div className="w-px h-5 mx-2" style={{ background: '#3E2610' }} />
+          {authLinks.map((l) => (
+            <Link key={l.href} href={l.href}
+              className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+              style={l.cta ? {
+                background: '#C4622D',
+                color: 'white',
+              } : {
+                color: isActive(l.href) ? '#C4622D' : '#D5B08A',
+                background: isActive(l.href) ? 'rgba(196,98,45,0.15)' : 'transparent',
+              }}>
+              {l.label}
+            </Link>
+          ))}
         </div>
 
         {/* Mobile hamburger */}
@@ -56,6 +73,13 @@ export default function Nav() {
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
               className="block py-3 text-sm font-semibold border-b"
               style={{ color: isActive(l.href, l.exact) ? '#C4622D' : '#D5B08A', borderColor: '#3E2610' }}>
+              {l.label}
+            </Link>
+          ))}
+          {authLinks.map((l) => (
+            <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
+              className="block py-3 text-sm font-semibold border-b"
+              style={{ color: l.cta ? '#C4622D' : isActive(l.href) ? '#C4622D' : '#D5B08A', borderColor: '#3E2610' }}>
               {l.label}
             </Link>
           ))}
