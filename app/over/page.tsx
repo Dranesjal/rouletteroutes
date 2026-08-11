@@ -10,12 +10,21 @@ export default function OverPage() {
       <div className="mb-12">
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#C4622D' }}>Wie zijn wij</p>
         <h1 className="font-display text-5xl font-black leading-tight mb-5" style={{ color: '#2C1A0E' }}>
-          Wij zijn de<br />
+          Welkom bij de<br />
           <span style={{ color: '#C4622D' }}>Roamers</span>
         </h1>
-        <p className="text-lg leading-relaxed" style={{ color: '#5C3D1E' }}>
-          Roulette Routes Roamers is een informele wandelgroep die op pad gaat zonder vooropgezet plan. De route staat pas vlak voor vertrek vast — soms bos, soms heide, soms polder. Wat altijd vaststaat is het gezelschap.
-        </p>
+        <p className="text-sm font-bold uppercase tracking-widest mb-6" style={{ color: '#8B5A2B' }}>Dwalen met bedoeling.</p>
+        <div className="space-y-4 text-lg leading-relaxed" style={{ color: '#5C3D1E' }}>
+          <p>
+            Bij Roulette Routes Roamers draait alles om het onverwachte. Geen vaste routes, geen strak plan. Elke keer een andere route en stad, een paar goede schoenen en de wil om samen op pad te gaan.
+          </p>
+          <p>
+            We kiezen onze wandelingen willekeurig: soms in het bos, soms door de stad, soms over een dijk of door een park. Wat vaststaat? Dat we onderweg zijn met mensen die openstaan voor een goed gesprek, een spontane lach en echte verbinding.
+          </p>
+          <p>
+            We wandelen niet om de snelste tijd te halen, maar om de tijd even los te laten. Roamen, dwalen, ontdekken. Ondertussen verhalen delen, elkaar leren kennen en genieten van het moment. We sluiten soms af met een lunch aan het einde van de wandeling.
+          </p>
+        </div>
       </div>
 
       {/* The name */}
@@ -23,9 +32,9 @@ export default function OverPage() {
         <h2 className="font-display font-bold text-xl mb-4" style={{ color: '#2C1A0E' }}>Wat betekent de naam?</h2>
         <dl className="space-y-4">
           {[
-            { term: 'Roulette', def: 'De bestemming en route worden willekeurig bepaald. Niemand weet van tevoren precies waar we naartoe gaan — dat is de grap én de verrassing.' },
-            { term: 'Routes', def: 'We lopen altijd een echte route: van A naar B naar A terug. Geen rondjes door de straat, maar buitenpaden, natuur en ruimte.' },
-            { term: 'Roamers', def: 'Dat zijn wij. Roamers dwalen met bedoeling. Niet haastig, niet competitief — gewoon lopen, praten, genieten. Jij ook een Roamer? Dan ben je welkom.' },
+            { term: 'Roulette', def: 'De bestemming en route worden willekeurig bepaald. Niemand weet van tevoren precies waar we naartoe gaan. Dat is de grap én de verrassing.' },
+            { term: 'Routes', def: 'We lopen diverse routes door heel Nederland. Soms door een wijk, soms over buitenpaden, langs een dijk of door de natuur. Elke wandeling is anders.' },
+            { term: 'Roamers', def: 'Dat zijn wij. Roamers dwalen met bedoeling. Niet haastig, niet competitief, gewoon lopen, praten, genieten. Jij ook een Roamer? Dan ben je welkom.' },
           ].map(({ term, def }) => (
             <div key={term} className="flex gap-4">
               <dt className="font-display font-black text-base w-24 flex-shrink-0 pt-0.5" style={{ color: '#C4622D' }}>{term}</dt>
@@ -64,7 +73,7 @@ export default function OverPage() {
             { icon: '🚶', title: 'Geen wedstrijd', body: 'We lopen op een tempo waarop iedereen kan meepraten. Je hoeft niet fit of ervaren te zijn.' },
             { icon: '🎲', title: 'Verrassing', body: 'De route is altijd een beetje onbekend. Dat houdt het fris voor iedereen, inclusief de organisatie.' },
             { icon: '💬', title: 'Verbinding', body: 'Wandelen en praten gaan hand in hand. Nieuwe gezichten zijn altijd welkom.' },
-            { icon: '🌿', title: 'Buiten zijn', body: 'Bos, heide, polder of park: we zoeken altijd de natuur op. Schermen mogen thuis blijven.' },
+            { icon: '🌿', title: 'Buiten zijn', body: 'Bos, heide, polder of park: we zoeken altijd de buitenlucht op. Schermen mogen thuis blijven.' },
           ].map(({ icon, title, body }) => (
             <div key={title} className="card p-5">
               <div className="text-3xl mb-3">{icon}</div>
