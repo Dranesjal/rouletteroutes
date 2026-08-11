@@ -5,6 +5,12 @@ interface Registration {
   id: string;
   wandeling: string;
   name: string;
+  adres: string;
+  postcode: string;
+  woonplaats: string;
+  land: string;
+  geboortedatum: string;
+  geslacht: string;
   email: string;
   phone: string;
   dietary: string;
@@ -160,21 +166,24 @@ export default function AdminPage() {
               <table className="w-full text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 <thead style={{ background: '#F5E4C0' }}>
                   <tr>
-                    {['Naam', 'E-mail', 'Telefoon', 'Wandeling', 'Dieet', 'Opmerking', 'Datum'].map((h) => (
-                      <th key={h} className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wide" style={{ color: '#8B5A2B' }}>{h}</th>
+                    {['Naam', 'Woonplaats', 'Geboortedatum', 'Geslacht', 'E-mail', 'Telefoon', 'Wandeling', 'Dieet', 'Opmerking', 'Datum'].map((h) => (
+                      <th key={h} className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wide whitespace-nowrap" style={{ color: '#8B5A2B' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {filteredRegs.map((r, i) => (
                     <tr key={r.id} style={{ background: i % 2 === 0 ? '#FAF3E3' : 'white', color: '#2C1A0E' }}>
-                      <td className="px-4 py-3 font-semibold">{r.name}</td>
+                      <td className="px-4 py-3 font-semibold whitespace-nowrap">{r.name}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{r.woonplaats || '-'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{r.geboortedatum || '-'}</td>
+                      <td className="px-4 py-3">{r.geslacht || '-'}</td>
                       <td className="px-4 py-3">{r.email}</td>
-                      <td className="px-4 py-3">{r.phone || '-'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{r.phone || '-'}</td>
                       <td className="px-4 py-3">{r.wandeling}</td>
                       <td className="px-4 py-3">{r.dietary || '-'}</td>
                       <td className="px-4 py-3 max-w-xs truncate">{r.message || '-'}</td>
-                      <td className="px-4 py-3 text-xs" style={{ color: '#8B5A2B' }}>
+                      <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#8B5A2B' }}>
                         {new Date(r.registeredAt).toLocaleDateString('nl-NL')}
                       </td>
                     </tr>

@@ -7,6 +7,12 @@ interface Registration {
   id: string;
   wandeling: string;
   name: string;
+  adres: string;
+  postcode: string;
+  woonplaats: string;
+  land: string;
+  geboortedatum: string;
+  geslacht: string;
   email: string;
   phone: string;
   dietary: string;
@@ -62,6 +68,12 @@ export async function POST(req: NextRequest) {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     wandeling: wandeling ?? 'unknown',
     name: name.trim(),
+    adres: body.adres?.trim() ?? '',
+    postcode: body.postcode?.trim() ?? '',
+    woonplaats: body.woonplaats?.trim() ?? '',
+    land: body.land?.trim() ?? 'Nederland',
+    geboortedatum: body.geboortedatum?.trim() ?? '',
+    geslacht: body.geslacht?.trim() ?? '',
     email: email.trim().toLowerCase(),
     phone: body.phone?.trim() ?? '',
     dietary: body.dietary?.trim() ?? '',
@@ -81,7 +93,7 @@ export async function POST(req: NextRequest) {
         from: 'Roulette Routes Roamers <noreply@rouletteroutes.nl>',
         to: process.env.NOTIFY_EMAIL,
         subject: `Nieuwe aanmelding: ${name} voor ${wandeling}`,
-        text: `Nieuwe aanmelding ontvangen:\n\nNaam: ${name}\nEmail: ${email}\nWandeling: ${wandeling}\nTelefoon: ${body.phone ?? '-'}\nDieetwensen: ${body.dietary ?? '-'}\nOpmerking: ${body.message ?? '-'}\n`,
+        text: `Nieuwe aanmelding ontvangen:\n\nNaam: ${name}\nAdres: ${body.adres ?? '-'}\nPostcode: ${body.postcode ?? '-'}\nWoonplaats: ${body.woonplaats ?? '-'}\nLand: ${body.land ?? '-'}\nGeboortedatum: ${body.geboortedatum ?? '-'}\nGeslacht: ${body.geslacht ?? '-'}\nEmail: ${email}\nTelefoon: ${body.phone ?? '-'}\nWandeling: ${wandeling}\nDieetwensen: ${body.dietary ?? '-'}\nOpmerking: ${body.message ?? '-'}\n`,
       });
     } catch {
       // Email failure is non-fatal
