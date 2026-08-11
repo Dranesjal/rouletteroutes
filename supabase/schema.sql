@@ -27,6 +27,7 @@ create table if not exists public.registrations (
   dietary        text default '',
   message        text default '',
   wilt_boekje    boolean default false,
+  wil_lunchen    boolean default false,
   registered_at  timestamptz default now()
 );
 
@@ -92,6 +93,11 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- ============================================================
+-- Als de tabel al bestaat: voeg wil_lunchen kolom toe
+-- ============================================================
+alter table public.registrations add column if not exists wil_lunchen boolean default false;
 
 -- ============================================================
 -- Maak jezelf admin (vervang het e-mailadres)

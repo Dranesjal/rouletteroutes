@@ -10,6 +10,7 @@ interface Hike {
   registrationOpen: boolean;
   registrationRequired?: boolean;
   hasLunch: boolean;
+  lunchVenue?: string;
   wandelboekje?: boolean;
 }
 
@@ -44,6 +45,7 @@ function AanmeldenForm() {
     dietary: '',
     message: '',
     wiltBoekje: false,
+    wilLunchen: false,
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -58,7 +60,7 @@ function AanmeldenForm() {
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
-  const setCheck = (k: 'wiltBoekje') => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const setCheck = (k: 'wiltBoekje' | 'wilLunchen') => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.checked }));
 
   const selectedHike = hikes.find((h) => h.slug === form.wandeling);
@@ -91,6 +93,7 @@ function AanmeldenForm() {
         dietary: form.dietary,
         message: form.message,
         wiltBoekje: form.wiltBoekje,
+        wilLunchen: form.wilLunchen,
       };
       const res = await fetch('/api/register', {
         method: 'POST',
@@ -284,10 +287,41 @@ function AanmeldenForm() {
                 </label>
               </div>
             )}
-            <div>
-              <label className="label-sm block mb-1">Dieetwensen / allergieën</label>
-              <input className="field" type="text" placeholder="Bijv. vegetarisch, glutenvrij..." value={form.dietary} onChange={set('dietary')} />
-            </div>
+            {selectedHike?.hasLunch && (
+              <div className="p-4 rounded-xl border" style={{ background: '#FFF8EC', borderColor: '#F5D78A' }}>
+                <label className="flex items-start gap-3 cursor-pointer mb-3">
+                  <input type="checkbox" checked={form.wilLunchen} onChange={setCheck('wilLunchen')}
+                    className="mt-0.5 w-4 h-4 flex-shrink-0" style={{ accentColor: '#C4622D' }} />
+                  <span className="text-sm leading-relaxed" style={{ color: '#2C1A0E' }}>
+                    <strong>Ik doe mee met de lunch</strong>
+                    {selectedHike.lunchVenue && (
+                      <span className="block mt-0.5 text-xs" style={{ color: '#8B5A2B' }}>
+                        bij {selectedHike.lunchVenue}
+                      </span>
+                    )}
+                  </span>
+                </label>
+
+                {form.wilLunchen && (
+                  <div className="mt-2 pt-3 border-t" style={{ borderColor: '#F5D78A' }}>
+                    <label className="label-sm block mb-1">Dieetwensen / allergieën</label>
+                    <input className="field" type="text"
+                      placeholder="Bijv. vegetarisch, glutenvrij, notenallergie..."
+                      value={form.dietary} onChange={set('dietary')} />
+                    <p className="text-xs mt-1" style={{ color: '#8B5A2B' }}>
+                      Vermeld hier alles wat de organisatie moet weten voor de lunch.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!selectedHike?.hasLunch && (
+              <div>
+                <label className="label-sm block mb-1">Dieetwensen / allergieën</label>
+                <input className="field" type="text" placeholder="Bijv. vegetarisch, glutenvrij..." value={form.dietary} onChange={set('dietary')} />
+              </div>
+            )}
             <div>
               <label className="label-sm block mb-1">Opmerkingen</label>
               <textarea className="field" rows={3} placeholder="Iets wat we moeten weten?" value={form.message} onChange={set('message')} />

@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     dietary: body.dietary?.trim() ?? '',
     message: body.message?.trim() ?? '',
     wilt_boekje: body.wiltBoekje === true,
+    wil_lunchen: body.wilLunchen === true,
   }).select('id').single();
 
   if (error) {
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
         from: 'Roulette Routes Roamers <noreply@rouletteroutes.nl>',
         to: process.env.NOTIFY_EMAIL,
         subject: `Nieuwe aanmelding: ${name} voor ${wandeling}`,
-        text: `Naam: ${name}\nAdres: ${body.adres ?? '-'}\nPostcode: ${body.postcode ?? '-'}\nWoonplaats: ${body.woonplaats ?? '-'}\nGeboortedatum: ${body.geboortedatum ?? '-'}\nGeslacht: ${body.geslacht ?? '-'}\nEmail: ${email}\nTelefoon: ${body.phone ?? '-'}\nWandeling: ${wandeling}\nWilt boekje: ${body.wiltBoekje ? 'Ja' : 'Nee'}\nDieetwensen: ${body.dietary ?? '-'}\nOpmerking: ${body.message ?? '-'}`,
+        text: `Naam: ${name}\nAdres: ${body.adres ?? '-'}\nPostcode: ${body.postcode ?? '-'}\nWoonplaats: ${body.woonplaats ?? '-'}\nGeboortedatum: ${body.geboortedatum ?? '-'}\nGeslacht: ${body.geslacht ?? '-'}\nEmail: ${email}\nTelefoon: ${body.phone ?? '-'}\nWandeling: ${wandeling}\nLunch: ${body.wilLunchen ? 'Ja' : 'Nee'}\nDieetwensen: ${body.dietary ?? '-'}\nWilt boekje: ${body.wiltBoekje ? 'Ja' : 'Nee'}\nOpmerking: ${body.message ?? '-'}`,
       });
     } catch { /* non-fatal */ }
   }
