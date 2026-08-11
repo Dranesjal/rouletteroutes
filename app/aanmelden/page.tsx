@@ -123,14 +123,9 @@ function AanmeldenForm() {
     <div className="max-w-xl mx-auto px-4 py-12">
       <div className="mb-8">
         <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#C4622D' }}>Inschrijven</p>
-        <h1 className="font-display text-4xl font-black mb-3" style={{ color: '#2C1A0E' }}>Aanmelden</h1>
+        <h1 className="font-display text-4xl font-black mb-3" style={{ color: '#2C1A0E' }}>Aanmelden, Roamer!</h1>
         <p style={{ color: '#5C3D1E' }}>Vul je gegevens in zodat we alles voor je kunnen regelen.</p>
 
-        {selectedHike?.registrationRequired === false && (
-          <div className="mt-4 p-3 rounded-lg text-sm" style={{ background: '#EEF6F0', color: '#2E5B3A', border: '1px solid #b6d9c0' }}>
-            Aanmelden voor deze wandeling is <strong>niet verplicht</strong> — je bent ook welkom zonder aanmelding.
-          </div>
-        )}
       </div>
 
       {/* Veluwe info block */}

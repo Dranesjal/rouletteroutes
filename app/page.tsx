@@ -19,14 +19,14 @@ export default async function HomePage() {
         <div className="relative max-w-5xl mx-auto px-4 py-20 md:py-28">
           <div className="max-w-xl">
             <p className="text-sm font-bold uppercase tracking-widest mb-4" style={{ color: '#C4622D' }}>
-              Dwalen met bedoeling
+              Welkom, Roamer
             </p>
             <h1 className="font-display text-4xl md:text-5xl font-black leading-tight mb-6" style={{ color: '#F5E4C0' }}>
               Geen vaste route.<br />Wel goede<br />
               <span style={{ color: '#C4622D' }}>gezelschap.</span>
             </h1>
             <p className="text-lg leading-relaxed mb-8" style={{ color: '#D5B08A' }}>
-              Bij Roulette Routes Roamers kiezen we onze wandelingen willekeurig — soms in het bos, soms door de stad, soms over een dijk. Wat vaststaat? Goede gesprekken, een aangenaam tempo en soms een lunch achteraf.
+              Wij zijn de Roamers: een informele wandelgroep die elke keer een nieuwe bestemming kiest. Soms bos, soms heide, soms polder. Wat altijd vaststaat? Goede gesprekken, een aangenaam tempo en soms een lunch achteraf.
             </p>
             <div className="flex gap-3 flex-wrap">
               <Link href="/wandelingen" className="btn-primary">Bekijk wandelingen</Link>
@@ -71,8 +71,9 @@ export default async function HomePage() {
               We wandelen niet om de snelste tijd te halen, maar om de tijd even los te laten. Onderweg verhalen delen, elkaar leren kennen en genieten van het moment.
             </p>
             <p className="text-base leading-relaxed mb-6" style={{ color: '#5C3D1E' }}>
-              Elke wandeling is anders: een andere route, een andere omgeving, maar altijd dezelfde sfeer. We sluiten soms af met een lunch of borrel — gezelligheid hoort erbij.
+              Elke wandeling is anders: een andere route, een andere omgeving, maar altijd dezelfde sfeer. We sluiten soms af met een lunch of borrel. Gezelligheid hoort erbij.
             </p>
+            <Link href="/over" className="text-sm font-semibold" style={{ color: '#C4622D' }}>Meer over de Roamers →</Link>
             <div className="flex gap-6">
               <div>
                 <p className="font-display text-3xl font-black" style={{ color: '#C4622D' }}>{pastCount}</p>

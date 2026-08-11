@@ -83,17 +83,8 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
       {/* CTA */}
       {hike.status === 'upcoming' && hike.registrationOpen && (
         <div className="text-center py-8 border-t" style={{ borderColor: '#EDD49A' }}>
-          {hike.registrationRequired === false ? (
-            <>
-              <p className="text-sm font-semibold mb-1" style={{ color: '#4A7C59' }}>Aanmelden is niet verplicht maar wel fijn</p>
-              <p className="text-sm mb-5" style={{ color: '#5C3D1E' }}>Zo weten we wie er meekomt. Je bent ook welkom zonder aanmelding.</p>
-            </>
-          ) : (
-            <p className="text-base mb-4" style={{ color: '#5C3D1E' }}>Ga je mee op deze wandeling?</p>
-          )}
-          <Link href={`/aanmelden?wandeling=${hike.slug}`} className="btn-primary">
-            {hike.registrationRequired === false ? 'Optioneel aanmelden' : 'Aanmelden voor deze wandeling'}
-          </Link>
+          <p className="text-base mb-4" style={{ color: '#5C3D1E' }}>Ga je mee, Roamer? Meld je aan!</p>
+          <Link href={`/aanmelden?wandeling=${hike.slug}`} className="btn-primary">Aanmelden</Link>
         </div>
       )}
 

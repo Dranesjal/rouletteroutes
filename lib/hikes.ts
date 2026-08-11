@@ -60,7 +60,6 @@ export const STATIC_HIKES: Hike[] = [
     meetingTime: '09:00',
     startTime: '10:00',
     registrationOpen: true,
-    registrationRequired: false,
     hasLunch: false,
     difficulty: 'moderate',
     terrain: 'Zandverstuivingen, bospaden en heidevelden',

@@ -10,6 +10,7 @@ export default function Nav() {
   const links = [
     { href: '/', label: 'Home', exact: true },
     { href: '/wandelingen', label: 'Wandelingen' },
+    { href: '/over', label: 'Over ons' },
     { href: '/aanmelden', label: 'Aanmelden' },
   ];
 
@@ -21,7 +22,7 @@ export default function Nav() {
       <nav className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Roulette Routes Roamers" className="h-10 w-10 object-contain rounded-full" />
+          <img src="/logo.png" alt="Roulette Routes Roamers" className="h-10 w-10 object-contain rounded-full" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <span className="font-display font-bold text-sm leading-tight hidden sm:block" style={{ color: '#F5E4C0' }}>
             Roulette Routes<br />
             <span style={{ color: '#C4622D' }}>Roamers</span>
