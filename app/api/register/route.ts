@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server';
+import { getAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Vul een geldig e-mailadres in.' }, { status: 400 });
   }
 
-  const service = await createServiceClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const service = getAdminClient() as any;
 
   // Duplicate check
   const { data: existing } = await service
