@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error('Registration insert error:', error);
-    return NextResponse.json({ error: 'Opslaan mislukt. Probeer het opnieuw.' }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   // Sla dieetwensen op in profiel zodat ze de volgende keer pre-ingevuld zijn
