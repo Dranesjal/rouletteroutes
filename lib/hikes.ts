@@ -23,6 +23,8 @@ export interface Hike {
   difficulty: 'easy' | 'moderate' | 'hard';
   terrain?: string;
   wandelboekje?: boolean;
+  registrationNote?: string;
+  registrationSuccessNote?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,6 +52,8 @@ function dbToHike(row: any): Hike {
     difficulty: row.difficulty ?? 'easy',
     terrain: row.terrain || undefined,
     wandelboekje: row.wandelboekje || undefined,
+    registrationNote: row.registration_note || undefined,
+    registrationSuccessNote: row.registration_success_note || undefined,
   };
 }
 

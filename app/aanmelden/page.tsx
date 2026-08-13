@@ -13,6 +13,8 @@ interface Hike {
   hasLunch: boolean;
   lunchVenue?: string;
   wandelboekje?: boolean;
+  registrationNote?: string;
+  registrationSuccessNote?: string;
 }
 
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -22,7 +24,6 @@ const MONTHS = [
 ];
 const YEARS = Array.from({ length: 80 }, (_, i) => new Date().getFullYear() - 18 - i);
 
-const VELUWE_SLUG = 'hoge-veluwe-okt-2026';
 
 function AanmeldenForm() {
   const searchParams = useSearchParams();
@@ -85,7 +86,6 @@ function AanmeldenForm() {
     setForm((f) => ({ ...f, [k]: e.target.checked }));
 
   const selectedHike = hikes.find((h) => h.slug === form.wandeling);
-  const isVeluwe = form.wandeling === VELUWE_SLUG;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,18 +138,11 @@ function AanmeldenForm() {
         <p className="text-base mb-3" style={{ color: '#5C3D1E' }}>
           Bedankt voor je aanmelding. Je ontvangt een bevestiging per e-mail met verdere details.
         </p>
-        {isVeluwe && (
-          <div className="text-sm mb-6 p-4 rounded-xl text-left space-y-2" style={{ background: '#F2F8F4', border: '1px solid #b6d9c0', color: '#2C3E2E' }}>
-            <p className="font-bold" style={{ color: '#2C3E2E' }}>📬 Bevestigingsmail van de organisatie</p>
-            <p>
-              Je ontvangt een e-mail van <strong>Stg het Nationale Park de Hoge Veluwe</strong> met als onderwerp:
-            </p>
-            <p className="px-3 py-2 rounded font-semibold" style={{ background: 'white', border: '1px solid #b6d9c0' }}>
-              Inschrijving Hoge Veluwe Wandeldag 2026
-            </p>
-            <p style={{ color: '#3E5C45' }}>
-              Hierin vind je de officiële bevestiging en verdere instructies voor de dag. Controleer ook je spammap als je de mail niet ziet.
-            </p>
+        {selectedHike?.registrationSuccessNote && (
+          <div className="text-sm mb-6 p-4 rounded-xl text-left" style={{ background: '#F2F8F4', border: '1px solid #b6d9c0', color: '#2C3E2E' }}>
+            {selectedHike.registrationSuccessNote.split('\n').map((line, i) => (
+              line.trim() ? <p key={i} className="mb-1 last:mb-0">{line}</p> : null
+            ))}
           </div>
         )}
         <a href="/" className="btn-primary">Terug naar home</a>
@@ -166,28 +159,16 @@ function AanmeldenForm() {
 
       </div>
 
-      {/* Veluwe info block */}
-      {isVeluwe && (
+      {/* Wandeling-specifieke info */}
+      {selectedHike?.registrationNote && (
         <div className="mb-8 rounded-xl overflow-hidden border" style={{ borderColor: '#EDD49A' }}>
-          <div className="px-5 py-3 font-bold text-sm" style={{ background: '#4A7C59', color: 'white' }}>
-            📋 Informatie Veluwedag · 3 oktober 2026
+          <div className="px-5 py-3 font-bold text-sm flex items-center gap-2" style={{ background: '#4A7C59', color: 'white' }}>
+            📋 Informatie {selectedHike.title}
           </div>
-          <div className="p-5 space-y-3 text-sm" style={{ background: '#FDFAF4', color: '#3E2610' }}>
-            <p>
-              <strong>Deze gegevens zijn nodig voor aanmelding bij het Nationaal Park De Hoge Veluwe.</strong>
-            </p>
-            <div className="flex items-start gap-2">
-              <span>🎟️</span>
-              <p>Entree van het park is voor eigen rekening. <strong>Dagkaart Park Volwassene: € 13,85 p.p.</strong> Je ontvangt hiervoor een Tikkie na aanmelding.</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span>✅</span>
-              <p>Wij regelen alles van inschrijving tot en met de eventuele lunch. Jij hoeft alleen te verschijnen.</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span>📱</span>
-              <p>Na aanmelding ontvang je een <strong>Tikkie</strong> voor de entreekosten. Lunchwensen worden apart doorgenomen.</p>
-            </div>
+          <div className="p-5 text-sm" style={{ background: '#FDFAF4', color: '#3E2610' }}>
+            {selectedHike.registrationNote.split('\n').map((line, i) => (
+              line.trim() ? <p key={i} className="mb-2 last:mb-0">{line}</p> : null
+            ))}
           </div>
         </div>
       )}

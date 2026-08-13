@@ -80,6 +80,8 @@ interface DbHike {
   difficulty: string;
   terrain: string;
   wandelboekje: boolean;
+  registration_note: string;
+  registration_success_note: string;
 }
 
 const EMPTY_HIKE: DbHike = {
@@ -87,6 +89,7 @@ const EMPTY_HIKE: DbHike = {
   distance_km: 0, duration_min: 0, description: '', status: 'upcoming',
   meeting_point: '', meeting_time: '', start_time: '', registration_open: false,
   has_lunch: false, lunch_venue: '', lunch_url: '', difficulty: 'easy', terrain: '', wandelboekje: false,
+  registration_note: '', registration_success_note: '',
 };
 
 interface Props {
@@ -876,6 +879,14 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
               <div className="sm:col-span-2">
                 <label className="label-sm block mb-1">Beschrijving</label>
                 <textarea className="field" rows={4} placeholder="Volledige beschrijving van de wandeling..." value={hikeForm.description} onChange={setHikeField('description')} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="label-sm block mb-1">Aanmeld-notitie <span className="font-normal" style={{ color: '#8B5A2B' }}>— info block boven het formulier (optioneel)</span></label>
+                <textarea className="field" rows={4} placeholder="Bijv. extra kosten, specifieke instructies voor deze wandeling..." value={hikeForm.registration_note} onChange={setHikeField('registration_note')} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="label-sm block mb-1">Bevestigingsnotitie <span className="font-normal" style={{ color: '#8B5A2B' }}>— bericht na aanmelding (optioneel)</span></label>
+                <textarea className="field" rows={3} placeholder="Bijv. wat de roamer na aanmelding ontvangt of moet doen..." value={hikeForm.registration_success_note} onChange={setHikeField('registration_success_note')} />
               </div>
               <div className="sm:col-span-2 flex flex-wrap gap-6">
                 <label className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: '#2C1A0E' }}>

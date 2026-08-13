@@ -51,6 +51,8 @@ export async function POST(req: NextRequest) {
     difficulty: body.difficulty || 'easy',
     terrain: body.terrain?.trim() || '',
     wandelboekje: body.wandelboekje === true,
+    registration_note: body.registration_note?.trim() || '',
+    registration_success_note: body.registration_success_note?.trim() || '',
   }, { onConflict: 'slug' }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
