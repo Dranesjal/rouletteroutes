@@ -59,6 +59,36 @@ interface WalkRecord {
   verified: boolean;
 }
 
+interface DbHike {
+  slug: string;
+  title: string;
+  subtitle: string;
+  date: string;
+  location: string;
+  region: string;
+  distance_km: number;
+  duration_min: number;
+  description: string;
+  status: 'upcoming' | 'completed';
+  meeting_point: string;
+  meeting_time: string;
+  start_time: string;
+  registration_open: boolean;
+  has_lunch: boolean;
+  lunch_venue: string;
+  lunch_url: string;
+  difficulty: string;
+  terrain: string;
+  wandelboekje: boolean;
+}
+
+const EMPTY_HIKE: DbHike = {
+  slug: '', title: '', subtitle: '', date: '', location: '', region: '',
+  distance_km: 0, duration_min: 0, description: '', status: 'upcoming',
+  meeting_point: '', meeting_time: '', start_time: '', registration_open: false,
+  has_lunch: false, lunch_venue: '', lunch_url: '', difficulty: 'easy', terrain: '', wandelboekje: false,
+};
+
 interface Props {
   adminName: string;
   adminRole: 'admin' | 'super_admin';
@@ -67,9 +97,10 @@ interface Props {
   hikes: HikeSummary[];
   kosten: Kost[];
   walkRecords: WalkRecord[];
+  allHikes: DbHike[];
 }
 
-type Tab = 'registrations' | 'wandelingen' | 'roamers' | 'looprecords';
+type Tab = 'registrations' | 'wandelingen' | 'roamers' | 'looprecords' | 'hikes';
 
 const euro = (n: number) => `€ ${n.toFixed(2).replace('.', ',')}`;
 
@@ -84,7 +115,7 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
-export default function AdminClient({ adminName, adminRole, registrations, roamers, hikes, kosten: initialKosten, walkRecords: initialWalkRecords }: Props) {
+export default function AdminClient({ adminName, adminRole, registrations, roamers, hikes, kosten: initialKosten, walkRecords: initialWalkRecords, allHikes: initialAllHikes }: Props) {
   const router = useRouter();
   const isSuperAdmin = adminRole === 'super_admin';
 
@@ -104,6 +135,13 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   const [walkForm, setWalkForm] = useState({ user_id: '', walk_slug: '', title: '', date: '', distance_km: '', notes: '' });
   const [walkSaving, setWalkSaving] = useState(false);
   const [walkError, setWalkError] = useState('');
+
+  // Hike beheer state
+  const [allHikes, setAllHikes] = useState<DbHike[]>(initialAllHikes);
+  const [hikeForm, setHikeForm] = useState<DbHike>(EMPTY_HIKE);
+  const [hikeEditing, setHikeEditing] = useState<string | null>(null);
+  const [hikeSaving, setHikeSaving] = useState(false);
+  const [hikeError, setHikeError] = useState('');
 
   // Lunch open/dicht per wandeling
   const [lunchOpen, setLunchOpen] = useState<Record<string, boolean>>({});
@@ -193,6 +231,55 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
     });
   };
 
+  // ── Hikes CRUD ──
+  const saveHike = async () => {
+    setHikeError('');
+    if (!hikeForm.slug.trim() || !hikeForm.title.trim() || !hikeForm.date) {
+      setHikeError('Slug, naam en datum zijn verplicht.');
+      return;
+    }
+    setHikeSaving(true);
+    try {
+      const res = await fetch('/api/admin/hikes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(hikeForm),
+      });
+      const data = await res.json();
+      if (data.error) { setHikeError(data.error); return; }
+      setAllHikes(prev => {
+        const idx = prev.findIndex(h => h.slug === data.hike.slug);
+        return idx >= 0 ? prev.map((h, i) => i === idx ? data.hike : h) : [data.hike, ...prev];
+      });
+      setHikeForm(EMPTY_HIKE);
+      setHikeEditing(null);
+    } finally {
+      setHikeSaving(false);
+    }
+  };
+
+  const editHike = (hike: DbHike) => {
+    setHikeForm(hike);
+    setHikeEditing(hike.slug);
+  };
+
+  const deleteHike = async (slug: string) => {
+    if (!confirm(`Wandeling "${slug}" definitief verwijderen?`)) return;
+    setAllHikes(prev => prev.filter(h => h.slug !== slug));
+    await fetch('/api/admin/hikes', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug }),
+    });
+  };
+
+  const setHikeField = <K extends keyof DbHike>(k: K) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      setHikeForm(f => ({ ...f, [k]: e.target.value }));
+
+  const setHikeCheck = (k: keyof DbHike) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setHikeForm(f => ({ ...f, [k]: e.target.checked }));
+
   // ── Walk records ──
   const saveWalkRecord = async () => {
     setWalkError('');
@@ -272,6 +359,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
           ['wandelingen', `Wandelingen (${uniqueWandelingen.length})`],
           ['roamers', `Roamers (${roamers.length})`],
           ['looprecords', `Looprecords (${walkRecords.length})`],
+          ['hikes', `Hikes (${allHikes.length})`],
         ] as [Tab, string][]).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)}
             className="pb-3 px-2 text-sm font-bold border-b-2 transition-all whitespace-nowrap"
@@ -709,6 +797,162 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ── Hikes ── */}
+      {tab === 'hikes' && (
+        <div className="space-y-8">
+          <div className="card p-6">
+            <h2 className="font-display font-bold text-lg mb-4" style={{ color: '#2C1A0E' }}>
+              {hikeEditing ? `Bewerken: ${hikeEditing}` : 'Nieuwe wandeling toevoegen'}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="label-sm block mb-1">Slug <span style={{ color: '#C4622D' }}>*</span></label>
+                <input className="field" placeholder="bijv. amsterdam-bos-mrt-2027"
+                  value={hikeForm.slug} onChange={setHikeField('slug')}
+                  readOnly={!!hikeEditing} style={hikeEditing ? { background: '#F5F5F5' } : undefined} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Naam <span style={{ color: '#C4622D' }}>*</span></label>
+                <input className="field" placeholder="bijv. Amsterdam · Bos loop" value={hikeForm.title} onChange={setHikeField('title')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Ondertitel</label>
+                <input className="field" placeholder="Korte beschrijving" value={hikeForm.subtitle} onChange={setHikeField('subtitle')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Datum <span style={{ color: '#C4622D' }}>*</span></label>
+                <input className="field" type="date" value={hikeForm.date} onChange={setHikeField('date')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Locatie</label>
+                <input className="field" placeholder="Adres startpunt" value={hikeForm.location} onChange={setHikeField('location')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Regio</label>
+                <input className="field" placeholder="bijv. Noord-Brabant" value={hikeForm.region} onChange={setHikeField('region')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Afstand (km)</label>
+                <input className="field" type="number" step="0.01" min="0" value={hikeForm.distance_km || ''} onChange={setHikeField('distance_km')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Duur (minuten)</label>
+                <input className="field" type="number" min="0" value={hikeForm.duration_min || ''} onChange={setHikeField('duration_min')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Verzameltijd</label>
+                <input className="field" type="time" value={hikeForm.meeting_time} onChange={setHikeField('meeting_time')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Starttijd</label>
+                <input className="field" type="time" value={hikeForm.start_time} onChange={setHikeField('start_time')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Moeilijkheidsgraad</label>
+                <select className="field" value={hikeForm.difficulty} onChange={setHikeField('difficulty')}>
+                  <option value="easy">Makkelijk</option>
+                  <option value="moderate">Gemiddeld</option>
+                  <option value="hard">Zwaar</option>
+                </select>
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Terrein</label>
+                <input className="field" placeholder="bijv. Bospaden, goed begaanbaar" value={hikeForm.terrain} onChange={setHikeField('terrain')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Status</label>
+                <select className="field" value={hikeForm.status} onChange={setHikeField('status')}>
+                  <option value="upcoming">Aankomend</option>
+                  <option value="completed">Voltooid</option>
+                </select>
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Verzamelpunt</label>
+                <input className="field" placeholder="Volledig adres verzamelpunt" value={hikeForm.meeting_point} onChange={setHikeField('meeting_point')} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="label-sm block mb-1">Beschrijving</label>
+                <textarea className="field" rows={4} placeholder="Volledige beschrijving van de wandeling..." value={hikeForm.description} onChange={setHikeField('description')} />
+              </div>
+              <div className="sm:col-span-2 flex flex-wrap gap-6">
+                <label className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: '#2C1A0E' }}>
+                  <input type="checkbox" checked={hikeForm.registration_open} onChange={setHikeCheck('registration_open')} className="w-4 h-4" style={{ accentColor: '#C4622D' }} />
+                  <strong>Aanmelding open</strong>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: '#2C1A0E' }}>
+                  <input type="checkbox" checked={hikeForm.wandelboekje} onChange={setHikeCheck('wandelboekje')} className="w-4 h-4" style={{ accentColor: '#C4622D' }} />
+                  <strong>Wandelkilometerboekje</strong>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: '#2C1A0E' }}>
+                  <input type="checkbox" checked={hikeForm.has_lunch} onChange={setHikeCheck('has_lunch')} className="w-4 h-4" style={{ accentColor: '#C4622D' }} />
+                  <strong>Lunch / diner</strong>
+                </label>
+              </div>
+              {hikeForm.has_lunch && (
+                <>
+                  <div>
+                    <label className="label-sm block mb-1">Locatie lunch</label>
+                    <input className="field" placeholder="bijv. De Boshut" value={hikeForm.lunch_venue} onChange={setHikeField('lunch_venue')} />
+                  </div>
+                  <div>
+                    <label className="label-sm block mb-1">Link menukaart (optioneel)</label>
+                    <input className="field" type="url" placeholder="https://..." value={hikeForm.lunch_url} onChange={setHikeField('lunch_url')} />
+                  </div>
+                </>
+              )}
+            </div>
+            {hikeError && (
+              <p className="text-sm mt-3 p-3 rounded-lg" style={{ background: '#FEE2E2', color: '#991B1B' }}>{hikeError}</p>
+            )}
+            <div className="flex gap-3 mt-4">
+              <button onClick={saveHike} disabled={hikeSaving} className="btn-primary" style={{ opacity: hikeSaving ? 0.7 : 1 }}>
+                {hikeSaving ? 'Opslaan...' : hikeEditing ? 'Wijzigingen opslaan' : '+ Wandeling toevoegen'}
+              </button>
+              {hikeEditing && (
+                <button onClick={() => { setHikeForm(EMPTY_HIKE); setHikeEditing(null); }}
+                  className="text-sm font-semibold px-4 py-2 rounded-lg"
+                  style={{ background: '#F5E4C0', color: '#5C3D1E' }}>
+                  Annuleren
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="font-display font-bold text-lg mb-4" style={{ color: '#2C1A0E' }}>Alle wandelingen ({allHikes.length})</h2>
+            {allHikes.length === 0 ? (
+              <p className="text-sm" style={{ color: '#8B5A2B' }}>Nog geen wandelingen in de database. Voer eerst de SQL seed uit in Supabase.</p>
+            ) : (
+              <div className="space-y-3">
+                {allHikes.map(h => (
+                  <div key={h.slug} className="card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-bold text-sm" style={{ color: '#2C1A0E' }}>{h.title}</p>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${h.status === 'upcoming' ? 'badge-upcoming' : 'badge-past'}`}>
+                          {h.status === 'upcoming' ? 'Aankomend' : 'Voltooid'}
+                        </span>
+                        {h.registration_open && <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: '#D1FAE5', color: '#065F46' }}>Aanmelding open</span>}
+                        {h.has_lunch && <span className="text-xs" style={{ color: '#8B5A2B' }}>🍽 {h.lunch_venue || 'Lunch'}</span>}
+                        {h.wandelboekje && <span className="text-xs" style={{ color: '#8B5A2B' }}>📓 Boekje</span>}
+                      </div>
+                      <p className="text-xs mt-1" style={{ color: '#8B5A2B' }}>
+                        {new Date(h.date).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                        {h.distance_km ? ` · ${h.distance_km} km` : ''}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button onClick={() => editHike(h)} className="text-xs px-3 py-1.5 rounded-lg font-semibold" style={{ background: '#F5E4C0', color: '#5C3D1E' }}>Bewerken</button>
+                      <button onClick={() => deleteHike(h.slug)} className="text-xs px-3 py-1.5 rounded-lg font-semibold" style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
-import { STATIC_HIKES } from '@/lib/hikes';
 import AdminClient from './AdminClient';
 
 export const dynamic = 'force-dynamic';
@@ -29,19 +28,20 @@ export default async function AdminPage() {
   }
 
   const service = await createServiceClient();
-  const [{ data: registrations }, { data: profiles }, { data: kosten }, { data: walkRecords }] = await Promise.all([
+  const [{ data: registrations }, { data: profiles }, { data: kosten }, { data: walkRecords }, { data: hikesData }] = await Promise.all([
     service.from('registrations').select('*').order('registered_at', { ascending: false }),
     service.from('profiles').select('*').order('created_at', { ascending: false }),
     service.from('wandeling_kosten').select('*').order('created_at'),
     service.from('walk_records').select('*').order('date', { ascending: false }),
+    service.from('hikes').select('*').order('date', { ascending: false }),
   ]);
 
-  const hikes = STATIC_HIKES.map(h => ({
-    slug: h.slug,
-    title: h.title,
-    date: h.date,
-    distanceKm: h.distanceKm,
-    status: h.status,
+  const hikes = (hikesData ?? []).map((h: Record<string, unknown>) => ({
+    slug: h.slug as string,
+    title: h.title as string,
+    date: h.date as string,
+    distanceKm: h.distance_km as number,
+    status: h.status as 'upcoming' | 'completed',
   }));
 
   return (
@@ -53,6 +53,7 @@ export default async function AdminPage() {
       hikes={hikes}
       kosten={kosten ?? []}
       walkRecords={walkRecords ?? []}
+      allHikes={hikesData ?? []}
     />
   );
 }

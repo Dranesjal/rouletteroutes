@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
-import { STATIC_HIKES } from '@/lib/hikes';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,17 +15,18 @@ export async function POST(req: NextRequest) {
     .eq('id', user.id)
     .single();
 
-  if (profile?.role !== 'admin') {
+  const role = profile?.role as string | undefined;
+  if (role !== 'admin' && role !== 'super_admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const { slug } = await req.json();
   if (!slug) return NextResponse.json({ error: 'slug vereist' }, { status: 400 });
 
-  const hike = STATIC_HIKES.find(h => h.slug === slug);
-  if (!hike) return NextResponse.json({ error: 'Wandeling niet gevonden' }, { status: 404 });
-
   const service = await createServiceClient();
+
+  const { data: hike } = await service.from('hikes').select('slug, title, distance_km, date').eq('slug', slug).single();
+  if (!hike) return NextResponse.json({ error: 'Wandeling niet gevonden' }, { status: 404 });
 
   // Haal alle aanmeldingen op met een gekoppeld account
   const { data: registrations, error: regError } = await service
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     type: 'rrr' as const,
     walk_slug: hike.slug,
     title: hike.title,
-    distance_km: hike.distanceKm,
+    distance_km: hike.distance_km,
     date: hike.date,
     verified: true,
     is_circular: false,
