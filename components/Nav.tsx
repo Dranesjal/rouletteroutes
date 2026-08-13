@@ -1,11 +1,32 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
+
+type AuthState = 'loading' | 'guest' | 'roamer' | 'admin';
 
 export default function Nav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [auth, setAuth] = useState<AuthState>('loading');
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setAuth('guest'); return; }
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+      const role = profile?.role as string | undefined;
+      setAuth(role === 'admin' || role === 'super_admin' ? 'admin' : 'roamer');
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => checkAuth());
+    return () => subscription.unsubscribe();
+  }, []);
 
   const links = [
     { href: '/', label: 'Home', exact: true },
@@ -13,13 +34,72 @@ export default function Nav() {
     { href: '/over', label: 'Over ons' },
   ];
 
-  const authLinks = [
-    { href: '/signup', label: 'Word Roamer', cta: true },
-    { href: '/login', label: 'Inloggen', cta: false },
-  ];
-
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
+
+  const authSection = () => {
+    if (auth === 'loading') return null;
+    if (auth === 'guest') return (
+      <>
+        <Link href="/signup"
+          className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+          style={{ background: '#C4622D', color: 'white' }}>
+          Word Roamer
+        </Link>
+        <Link href="/login"
+          className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+          style={{ color: isActive('/login') ? '#C4622D' : '#D5B08A', background: isActive('/login') ? 'rgba(196,98,45,0.15)' : 'transparent' }}>
+          Inloggen
+        </Link>
+      </>
+    );
+    if (auth === 'admin') return (
+      <Link href="/admin"
+        className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+        style={{ background: '#C4622D', color: 'white' }}>
+        Admin
+      </Link>
+    );
+    return (
+      <Link href="/roamer"
+        className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+        style={{ background: isActive('/roamer') ? '#C4622D' : 'rgba(196,98,45,0.15)', color: isActive('/roamer') ? 'white' : '#C4622D' }}>
+        Mijn profiel
+      </Link>
+    );
+  };
+
+  const mobileAuthSection = () => {
+    if (auth === 'loading') return null;
+    if (auth === 'guest') return (
+      <>
+        <Link href="/signup" onClick={() => setOpen(false)}
+          className="block py-3 text-sm font-semibold border-b"
+          style={{ color: '#C4622D', borderColor: '#3E2610' }}>
+          Word Roamer
+        </Link>
+        <Link href="/login" onClick={() => setOpen(false)}
+          className="block py-3 text-sm font-semibold border-b"
+          style={{ color: isActive('/login') ? '#C4622D' : '#D5B08A', borderColor: '#3E2610' }}>
+          Inloggen
+        </Link>
+      </>
+    );
+    if (auth === 'admin') return (
+      <Link href="/admin" onClick={() => setOpen(false)}
+        className="block py-3 text-sm font-semibold border-b"
+        style={{ color: '#C4622D', borderColor: '#3E2610' }}>
+        Admin
+      </Link>
+    );
+    return (
+      <Link href="/roamer" onClick={() => setOpen(false)}
+        className="block py-3 text-sm font-semibold border-b"
+        style={{ color: '#C4622D', borderColor: '#3E2610' }}>
+        Mijn profiel
+      </Link>
+    );
+  };
 
   return (
     <header style={{ background: '#2C1A0E' }}>
@@ -46,19 +126,7 @@ export default function Nav() {
             </Link>
           ))}
           <div className="w-px h-5 mx-2" style={{ background: '#3E2610' }} />
-          {authLinks.map((l) => (
-            <Link key={l.href} href={l.href}
-              className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-              style={l.cta ? {
-                background: '#C4622D',
-                color: 'white',
-              } : {
-                color: isActive(l.href) ? '#C4622D' : '#D5B08A',
-                background: isActive(l.href) ? 'rgba(196,98,45,0.15)' : 'transparent',
-              }}>
-              {l.label}
-            </Link>
-          ))}
+          {authSection()}
         </div>
 
         {/* Mobile hamburger */}
@@ -76,13 +144,7 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          {authLinks.map((l) => (
-            <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
-              className="block py-3 text-sm font-semibold border-b"
-              style={{ color: l.cta ? '#C4622D' : isActive(l.href) ? '#C4622D' : '#D5B08A', borderColor: '#3E2610' }}>
-              {l.label}
-            </Link>
-          ))}
+          {mobileAuthSection()}
         </div>
       )}
     </header>
