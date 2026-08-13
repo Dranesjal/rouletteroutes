@@ -100,7 +100,7 @@ interface Props {
   allHikes: DbHike[];
 }
 
-type Tab = 'registrations' | 'wandelingen' | 'roamers' | 'looprecords' | 'hikes';
+type Tab = 'wandelingen' | 'roamers' | 'looprecords' | 'hikes';
 
 const euro = (n: number) => `€ ${n.toFixed(2).replace('.', ',')}`;
 
@@ -119,9 +119,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   const router = useRouter();
   const isSuperAdmin = adminRole === 'super_admin';
 
-  const [tab, setTab] = useState<Tab>('registrations');
-  const [filter, setFilter] = useState('');
-  const [showInactief, setShowInactief] = useState(false);
+  const [tab, setTab] = useState<Tab>('wandelingen');
 
   // Optimistic registration state
   const [regs, setRegs] = useState<Registration[]>(registrations);
@@ -143,18 +141,15 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   const [hikeSaving, setHikeSaving] = useState(false);
   const [hikeError, setHikeError] = useState('');
 
-  // Lunch open/dicht per wandeling
+  // Collapsible secties per wandeling
   const [lunchOpen, setLunchOpen] = useState<Record<string, boolean>>({});
+  const [aanmeldingenOpen, setAanmeldingenOpen] = useState<Record<string, boolean>>({});
 
   // Wandelingen complete state
   const [completing, setCompleting] = useState<string | null>(null);
   const [completeResults, setCompleteResults] = useState<Record<string, { created: number; message?: string } | { error: string }>>({});
 
   const uniqueWandelingen = [...new Set(regs.map(r => r.wandeling))];
-  const filtered = regs.filter(r =>
-    (!filter || r.wandeling === filter) &&
-    (showInactief || r.actief)
-  );
 
   // ── Auth ──
   const handleLogout = async () => {
@@ -355,7 +350,6 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
       {/* Tabs */}
       <div className="flex gap-2 mb-8 border-b overflow-x-auto" style={{ borderColor: '#EDD49A' }}>
         {([
-          ['registrations', `Aanmeldingen (${regs.filter(r => r.actief).length})`],
           ['wandelingen', `Wandelingen (${uniqueWandelingen.length})`],
           ['roamers', `Roamers (${roamers.length})`],
           ['looprecords', `Looprecords (${walkRecords.length})`],
@@ -368,89 +362,6 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
           </button>
         ))}
       </div>
-
-      {/* ── Aanmeldingen ── */}
-      {tab === 'registrations' && (
-        <div>
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <div className="flex items-center gap-3">
-              <p className="text-sm font-semibold" style={{ color: '#5C3D1E' }}>{filtered.length} aanmelding(en)</p>
-              <label className="flex items-center gap-1.5 text-xs cursor-pointer" style={{ color: '#8B5A2B' }}>
-                <input type="checkbox" checked={showInactief} onChange={e => setShowInactief(e.target.checked)} />
-                Toon inactief
-              </label>
-            </div>
-            {uniqueWandelingen.length > 1 && (
-              <select className="field text-sm py-1" style={{ width: 'auto' }} value={filter} onChange={e => setFilter(e.target.value)}>
-                <option value="">Alle wandelingen</option>
-                {uniqueWandelingen.map(w => <option key={w} value={w}>{w}</option>)}
-              </select>
-            )}
-          </div>
-
-          {filtered.length === 0 ? (
-            <p className="text-center py-12" style={{ color: '#8B5A2B' }}>Geen aanmeldingen.</p>
-          ) : (
-            <div className="overflow-x-auto rounded-xl border" style={{ borderColor: '#EDD49A' }}>
-              <table className="w-full text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                <thead style={{ background: '#F5E4C0' }}>
-                  <tr>
-                    {['Naam', 'E-mail', 'Telefoon', 'Wandeling', 'Account', 'Actief', 'Betaald', 'Lunch', 'Boekje', 'Datum', ''].map(h => (
-                      <th key={h} className="text-left px-3 py-3 font-bold text-xs uppercase tracking-wide whitespace-nowrap" style={{ color: '#8B5A2B' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((r, i) => (
-                    <tr key={r.id} style={{ background: !r.actief ? '#FEF9F0' : i % 2 === 0 ? '#FAF3E3' : 'white', color: r.actief ? '#2C1A0E' : '#A07850', opacity: r.actief ? 1 : 0.7 }}>
-                      <td className="px-3 py-2 font-semibold whitespace-nowrap">{r.name}</td>
-                      <td className="px-3 py-2">{r.email}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">{r.phone || '-'}</td>
-                      <td className="px-3 py-2 text-xs">{r.wandeling}</td>
-                      <td className="px-3 py-2">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded"
-                          style={{ background: r.profile_id ? '#D1FAE5' : '#F3F4F6', color: r.profile_id ? '#065F46' : '#6B7280' }}>
-                          {r.profile_id ? 'Roamer' : 'Gast'}
-                        </span>
-                      </td>
-                      {/* Actief toggle */}
-                      <td className="px-3 py-2">
-                        <button onClick={() => toggleActief(r.id, r.actief)}
-                          className="text-xs px-2 py-1 rounded font-semibold"
-                          style={{ background: r.actief ? '#D1FAE5' : '#FEE2E2', color: r.actief ? '#065F46' : '#991B1B' }}>
-                          {r.actief ? 'Actief' : 'Inactief'}
-                        </button>
-                      </td>
-                      {/* Betaald toggle */}
-                      <td className="px-3 py-2">
-                        <button onClick={() => toggleBetaald(r.id, r.betaald)}
-                          className="text-xs px-2 py-1 rounded font-semibold"
-                          style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
-                          {r.betaald ? '✓ Betaald' : 'Open'}
-                        </button>
-                      </td>
-                      <td className="px-3 py-2">{r.wil_lunchen ? '✅' : '-'}</td>
-                      <td className="px-3 py-2">{r.wilt_boekje ? '✅' : '-'}</td>
-                      <td className="px-3 py-2 text-xs whitespace-nowrap" style={{ color: '#8B5A2B' }}>
-                        {new Date(r.registered_at).toLocaleDateString('nl-NL')}
-                      </td>
-                      <td className="px-3 py-2">
-                        {isSuperAdmin && (
-                          <button onClick={() => deleteReg(r.id, r.name)}
-                            className="text-xs px-2 py-1 rounded font-semibold"
-                            style={{ background: '#FEE2E2', color: '#991B1B' }}>
-                            ✕
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ── Wandelingen ── */}
       {tab === 'wandelingen' && (
@@ -567,6 +478,88 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                     </div>
                   )}
                 </div>
+
+                {/* Aanmeldingen */}
+                {(() => {
+                  const allWandRegs = regs.filter(r => r.wandeling === slug);
+                  const actiefRegs = allWandRegs.filter(r => r.actief);
+                  const isOpen = aanmeldingenOpen[slug] ?? false;
+                  return (
+                    <div>
+                      <button
+                        onClick={() => setAanmeldingenOpen(prev => ({ ...prev, [slug]: !isOpen }))}
+                        className="flex items-center gap-2 text-sm font-bold w-full text-left"
+                        style={{ color: '#2C1A0E' }}
+                      >
+                        <span style={{ color: '#8B5A2B', fontSize: '0.7rem' }}>{isOpen ? '▼' : '▶'}</span>
+                        Aanmeldingen
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full ml-1"
+                          style={{ background: actiefRegs.length > 0 ? '#C4622D' : '#EDD49A', color: actiefRegs.length > 0 ? 'white' : '#8B5A2B' }}>
+                          {actiefRegs.length} actief{allWandRegs.length > actiefRegs.length ? ` · ${allWandRegs.length - actiefRegs.length} inactief` : ''}
+                        </span>
+                      </button>
+                      {isOpen && (
+                        <div className="mt-3 rounded-xl overflow-hidden border" style={{ borderColor: '#EDD49A' }}>
+                          {allWandRegs.length === 0 ? (
+                            <p className="px-4 py-3 text-sm" style={{ color: '#8B5A2B' }}>Geen aanmeldingen.</p>
+                          ) : (
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                <thead style={{ background: '#FAF3E3' }}>
+                                  <tr>
+                                    {['Naam', 'E-mail', 'Account', 'Actief', 'Betaald', 'Lunch', 'Boekje', 'Datum', ''].map(h => (
+                                      <th key={h} className="text-left px-3 py-2 font-bold text-xs uppercase tracking-wide whitespace-nowrap" style={{ color: '#8B5A2B' }}>{h}</th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {allWandRegs.map((r, i) => (
+                                    <tr key={r.id} style={{ background: i % 2 === 0 ? 'white' : '#FAF3E3', opacity: r.actief ? 1 : 0.6, color: '#2C1A0E' }}>
+                                      <td className="px-3 py-2 font-semibold whitespace-nowrap">{r.name}</td>
+                                      <td className="px-3 py-2 text-xs">{r.email}</td>
+                                      <td className="px-3 py-2">
+                                        <span className="text-xs font-semibold px-2 py-0.5 rounded"
+                                          style={{ background: r.profile_id ? '#D1FAE5' : '#F3F4F6', color: r.profile_id ? '#065F46' : '#6B7280' }}>
+                                          {r.profile_id ? 'Roamer' : 'Gast'}
+                                        </span>
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <button onClick={() => toggleActief(r.id, r.actief)}
+                                          className="text-xs px-2 py-1 rounded font-semibold"
+                                          style={{ background: r.actief ? '#D1FAE5' : '#FEE2E2', color: r.actief ? '#065F46' : '#991B1B' }}>
+                                          {r.actief ? 'Actief' : 'Inactief'}
+                                        </button>
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <button onClick={() => toggleBetaald(r.id, r.betaald)}
+                                          className="text-xs px-2 py-1 rounded font-semibold"
+                                          style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
+                                          {r.betaald ? '✓ Betaald' : 'Open'}
+                                        </button>
+                                      </td>
+                                      <td className="px-3 py-2 text-center">{r.wil_lunchen ? '✅' : '-'}</td>
+                                      <td className="px-3 py-2 text-center">{r.wilt_boekje ? '✅' : '-'}</td>
+                                      <td className="px-3 py-2 text-xs whitespace-nowrap" style={{ color: '#8B5A2B' }}>
+                                        {new Date(r.registered_at).toLocaleDateString('nl-NL')}
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        {isSuperAdmin && (
+                                          <button onClick={() => deleteReg(r.id, r.name)}
+                                            className="text-xs px-2 py-1 rounded font-semibold"
+                                            style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Lunch */}
                 {(() => {
