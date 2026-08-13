@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,8 +28,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'slug, title en date zijn verplicht' }, { status: 400 });
   }
 
-  const service = await createServiceClient();
-  const { data, error } = await service.from('hikes').upsert({
+  const { data, error } = await supabase.from('hikes').upsert({
     slug: slug.trim(),
     title: title.trim(),
     subtitle: body.subtitle?.trim() || '',
@@ -68,8 +67,7 @@ export async function DELETE(req: NextRequest) {
   const { slug } = await req.json();
   if (!slug) return NextResponse.json({ error: 'slug vereist' }, { status: 400 });
 
-  const service = await createServiceClient();
-  const { error } = await service.from('hikes').delete().eq('slug', slug);
+  const { error } = await supabase.from('hikes').delete().eq('slug', slug);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
