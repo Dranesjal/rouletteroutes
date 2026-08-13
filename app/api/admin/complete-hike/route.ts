@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ created: 0, message: 'Geen gekoppelde Roamers voor deze wandeling.' });
   }
 
-  // Maak walk_records aan — upsert om duplicaten te skippen
+  // Maak walk_records aan, upsert om duplicaten te skippen
   const records = registrations.map(r => ({
     user_id: r.profile_id as string,
     type: 'rrr' as const,

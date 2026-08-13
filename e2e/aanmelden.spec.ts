@@ -18,7 +18,7 @@ test.describe('Aanmelden form', () => {
 
   test('submit without required fields shows validation', async ({ page }) => {
     await page.getByRole('button', { name: /aanmelden/i }).click();
-    // Browser-validatie houdt de submit tegen — we blijven op de pagina
+    // Browser-validatie houdt de submit tegen, we blijven op de pagina
     await expect(page.getByRole('button', { name: /aanmelden/i })).toBeVisible();
   });
 
