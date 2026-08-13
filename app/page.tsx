@@ -16,7 +16,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 opacity-10" style={{
           backgroundImage: 'radial-gradient(circle at 20% 50%, #C4622D 0%, transparent 50%), radial-gradient(circle at 80% 20%, #4A7C59 0%, transparent 40%)',
         }} />
-        <div className="relative max-w-5xl mx-auto px-4 py-20 md:py-28">
+        <div className="relative max-w-5xl mx-auto px-4 py-12 md:py-16">
           <div className="max-w-xl">
             <p className="text-sm font-bold uppercase tracking-widest mb-4" style={{ color: '#C4622D' }}>
               Welkom bij de Roulette Routes Roamers
