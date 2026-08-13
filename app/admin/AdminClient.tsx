@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import PhotoUpload from './PhotoUpload';
 
 interface Registration {
   id: string;
@@ -893,12 +894,20 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                 <textarea className="field" rows={3} placeholder="Bijv. wat de roamer na aanmelding ontvangt of moet doen..." value={hikeForm.registration_success_note} onChange={setHikeField('registration_success_note')} />
               </div>
               <div>
-                <label className="label-sm block mb-1">Routefoto URL <span className="font-normal" style={{ color: '#8B5A2B' }}>— zichtbaar op hikepagina</span></label>
-                <input className="field" type="url" placeholder="https://..." value={hikeForm.route_image_url} onChange={setHikeField('route_image_url')} />
+                <PhotoUpload
+                  label="Routefoto"
+                  hint="— zichtbaar voor iedereen op de hikepagina"
+                  value={hikeForm.route_image_url}
+                  onChange={url => setHikeForm(f => ({ ...f, route_image_url: url }))}
+                />
               </div>
               <div>
-                <label className="label-sm block mb-1">Groepsfoto URL <span className="font-normal" style={{ color: '#8B5A2B' }}>— alleen voor ingelogde roamers</span></label>
-                <input className="field" type="url" placeholder="https://..." value={hikeForm.group_photo_url} onChange={setHikeField('group_photo_url')} />
+                <PhotoUpload
+                  label="Groepsfoto"
+                  hint="— alleen voor roamers die de hike gelopen hebben"
+                  value={hikeForm.group_photo_url}
+                  onChange={url => setHikeForm(f => ({ ...f, group_photo_url: url }))}
+                />
               </div>
               <div>
                 <label className="label-sm block mb-1">Aanmeldformulier</label>

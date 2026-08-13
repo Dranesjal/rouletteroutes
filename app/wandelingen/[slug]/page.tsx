@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAllHikes, getHikeBySlug, formatDate, formatDuration, Hike } from '@/lib/hikes';
 import { createClient } from '@/lib/supabase/server';
+import { getAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,18 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const isLoggedIn = !!user;
+
+  // Check if this user has walked this specific hike
+  let hasWalked = false;
+  if (user) {
+    const admin = getAdminClient();
+    const { data: wr } = await (admin as any).from('walk_records')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('walk_slug', slug)
+      .maybeSingle();
+    hasWalked = !!wr;
+  }
 
   const difficultyLabel = { easy: 'Makkelijk', moderate: 'Gemiddeld', hard: 'Zwaar' }[hike.difficulty];
 
@@ -107,7 +119,7 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
 
       {/* Groepsfoto — alleen voor ingelogde roamers */}
       {hike.groupPhotoUrl && hike.status === 'completed' && (
-        isLoggedIn ? (
+        hasWalked ? (
           <div className="mb-8">
             <h2 className="font-display font-bold text-xl mb-3" style={{ color: '#2C1A0E' }}>Groepsfoto</h2>
             <div className="rounded-2xl overflow-hidden border" style={{ borderColor: '#EDD49A' }}>
@@ -118,8 +130,10 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
         ) : (
           <div className="mb-8 rounded-xl p-5 text-center border" style={{ background: '#FAF3E3', borderColor: '#EDD49A' }}>
             <p className="text-sm font-semibold mb-2" style={{ color: '#2C1A0E' }}>📷 Er is een groepsfoto beschikbaar</p>
-            <p className="text-xs mb-3" style={{ color: '#8B5A2B' }}>Log in als Roamer om de groepsfoto te bekijken.</p>
-            <Link href="/login" className="btn-primary" style={{ display: 'inline-block' }}>Inloggen</Link>
+            <p className="text-xs" style={{ color: '#8B5A2B' }}>
+              {user ? 'De groepsfoto is alleen zichtbaar voor roamers die deze wandeling hebben gelopen.' : 'Log in als Roamer om te zien of de groepsfoto voor jou beschikbaar is.'}
+            </p>
+            {!user && <Link href="/login" className="btn-primary mt-3" style={{ display: 'inline-block' }}>Inloggen</Link>}
           </div>
         )
       )}
