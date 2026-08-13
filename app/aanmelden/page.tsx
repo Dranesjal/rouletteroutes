@@ -15,6 +15,7 @@ interface Hike {
   wandelboekje?: boolean;
   registrationNote?: string;
   registrationSuccessNote?: string;
+  registrationForm?: 'basic' | 'full';
 }
 
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -205,62 +206,66 @@ function AanmeldenForm() {
               <input className="field" type="text" placeholder="Je volledige naam" value={form.name} onChange={set('name')} required />
             </div>
 
-            <div>
-              <label className="label-sm block mb-1">Adres <span style={{ color: '#C4622D' }}>*</span></label>
-              <input className="field" type="text" placeholder="Straat en huisnummer" value={form.adres} onChange={set('adres')} required />
-            </div>
+            {selectedHike?.registrationForm === 'full' && (
+              <>
+                <div>
+                  <label className="label-sm block mb-1">Adres <span style={{ color: '#C4622D' }}>*</span></label>
+                  <input className="field" type="text" placeholder="Straat en huisnummer" value={form.adres} onChange={set('adres')} required />
+                </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label-sm block mb-1">Postcode <span style={{ color: '#C4622D' }}>*</span></label>
-                <input className="field" type="text" placeholder="1234 AB" value={form.postcode} onChange={set('postcode')} required />
-              </div>
-              <div>
-                <label className="label-sm block mb-1">Woonplaats <span style={{ color: '#C4622D' }}>*</span></label>
-                <input className="field" type="text" placeholder="Woonplaats" value={form.woonplaats} onChange={set('woonplaats')} required />
-              </div>
-            </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label-sm block mb-1">Postcode <span style={{ color: '#C4622D' }}>*</span></label>
+                    <input className="field" type="text" placeholder="1234 AB" value={form.postcode} onChange={set('postcode')} required />
+                  </div>
+                  <div>
+                    <label className="label-sm block mb-1">Woonplaats <span style={{ color: '#C4622D' }}>*</span></label>
+                    <input className="field" type="text" placeholder="Woonplaats" value={form.woonplaats} onChange={set('woonplaats')} required />
+                  </div>
+                </div>
 
-            <div>
-              <label className="label-sm block mb-1">Land <span style={{ color: '#C4622D' }}>*</span></label>
-              <select className="field" value={form.land} onChange={set('land')} required>
-                <option>Nederland</option>
-                <option>België</option>
-                <option>Duitsland</option>
-                <option>Anders</option>
-              </select>
-            </div>
+                <div>
+                  <label className="label-sm block mb-1">Land <span style={{ color: '#C4622D' }}>*</span></label>
+                  <select className="field" value={form.land} onChange={set('land')} required>
+                    <option>Nederland</option>
+                    <option>België</option>
+                    <option>Duitsland</option>
+                    <option>Anders</option>
+                  </select>
+                </div>
 
-            <div>
-              <label className="label-sm block mb-1">Geboortedatum <span style={{ color: '#C4622D' }}>*</span></label>
-              <div className="grid grid-cols-3 gap-2">
-                <select className="field" value={form.geboorteDag} onChange={set('geboorteDag')} required>
-                  <option value="">Dag</option>
-                  {DAYS.map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <select className="field" value={form.geboorteMaand} onChange={set('geboorteMaand')} required>
-                  <option value="">Maand</option>
-                  {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-                </select>
-                <select className="field" value={form.geboorteJaar} onChange={set('geboorteJaar')} required>
-                  <option value="">Jaar</option>
-                  {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-                </select>
-              </div>
-            </div>
+                <div>
+                  <label className="label-sm block mb-1">Geboortedatum <span style={{ color: '#C4622D' }}>*</span></label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <select className="field" value={form.geboorteDag} onChange={set('geboorteDag')} required>
+                      <option value="">Dag</option>
+                      {DAYS.map((d) => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                    <select className="field" value={form.geboorteMaand} onChange={set('geboorteMaand')} required>
+                      <option value="">Maand</option>
+                      {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                    </select>
+                    <select className="field" value={form.geboorteJaar} onChange={set('geboorteJaar')} required>
+                      <option value="">Jaar</option>
+                      {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  </div>
+                </div>
 
-            <div>
-              <label className="label-sm block mb-2">Geslacht <span style={{ color: '#C4622D' }}>*</span></label>
-              <div className="flex gap-6">
-                {['Man', 'Vrouw'].map((g) => (
-                  <label key={g} className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: '#2C1A0E' }}>
-                    <input type="radio" name="geslacht" value={g} checked={form.geslacht === g}
-                      onChange={set('geslacht')} required className="w-4 h-4 accent-[#C4622D]" />
-                    {g}
-                  </label>
-                ))}
-              </div>
-            </div>
+                <div>
+                  <label className="label-sm block mb-2">Geslacht <span style={{ color: '#C4622D' }}>*</span></label>
+                  <div className="flex gap-6">
+                    {['Man', 'Vrouw'].map((g) => (
+                      <label key={g} className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: '#2C1A0E' }}>
+                        <input type="radio" name="geslacht" value={g} checked={form.geslacht === g}
+                          onChange={set('geslacht')} required className="w-4 h-4 accent-[#C4622D]" />
+                        {g}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
