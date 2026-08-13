@@ -101,7 +101,7 @@ export default async function RoamerPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm" style={{ color: '#8B5A2B' }}>Nog geen voltooide wandelingen geregistreerd.</p>
+          <p className="text-sm" style={{ color: '#8B5A2B' }}>Nog geen gedane wandelingen geregistreerd.</p>
         )}
       </div>
     </div>
