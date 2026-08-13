@@ -10,8 +10,8 @@ async function checkAdmin(supabase: Awaited<ReturnType<typeof createClient>>, us
 }
 
 export async function GET() {
-  const service = await createServiceClient();
-  const { data } = await service.from('hikes').select('*').order('date', { ascending: false });
+  const supabase = await createClient();
+  const { data } = await supabase.from('hikes').select('*').order('date', { ascending: false });
   return NextResponse.json({ hikes: data ?? [] });
 }
 
