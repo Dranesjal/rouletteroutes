@@ -83,7 +83,7 @@ export async function getAllHikes(): Promise<Hike[]> {
         return [...STATIC_HIKES, ...newDynamic].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       }
     }
-  } catch { /* no blob or no env var — use static */ }
+  } catch { /* no blob or no env var, use static */ }
   return [...STATIC_HIKES].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
