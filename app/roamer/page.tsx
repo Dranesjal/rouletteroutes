@@ -57,6 +57,18 @@ export default async function RoamerPage() {
     .eq('user_id', user.id)
     .order('date', { ascending: false });
 
+  // Fetch group photos for walked hikes
+  type HikePhoto = { slug: string; group_photo_url: string };
+  const slugsWithPhoto = (walkRecords ?? []).map(r => r.walk_slug).filter(Boolean) as string[];
+  let hikePhotos: HikePhoto[] = [];
+  if (slugsWithPhoto.length > 0) {
+    const { data } = await service.from('hikes').select('slug, group_photo_url').in('slug', slugsWithPhoto);
+    hikePhotos = (data as HikePhoto[] | null) ?? [];
+  }
+  const photoMap: Record<string, string> = Object.fromEntries(
+    hikePhotos.filter((h: HikePhoto) => h.group_photo_url).map((h: HikePhoto) => [h.slug, h.group_photo_url])
+  );
+
   const totalKm = walkRecords?.reduce((sum, r) => sum + (r.distance_km ?? 0), 0) ?? 0;
 
   return (
@@ -126,19 +138,28 @@ export default async function RoamerPage() {
         <h2 className="font-display font-bold text-xl mb-4" style={{ color: '#2C1A0E' }}>Gelopen wandelingen</h2>
         {walkRecords?.length ? (
           <div className="space-y-3">
-            {walkRecords.map((r) => (
-              <div key={r.walk_slug} className="card p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-sm" style={{ color: '#2C1A0E' }}>{r.title ?? r.walk_slug}</p>
-                  {r.date && (
-                    <p className="text-xs mt-0.5" style={{ color: '#8B5A2B' }}>{formatDate(r.date)}</p>
+            {walkRecords.map((r) => {
+              const photo = r.walk_slug ? photoMap[r.walk_slug] : undefined;
+              return (
+                <div key={r.walk_slug} className="card overflow-hidden">
+                  {photo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={photo} alt={`Groepsfoto ${r.title}`} className="w-full object-cover max-h-48" />
                   )}
+                  <div className="p-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-sm" style={{ color: '#2C1A0E' }}>{r.title ?? r.walk_slug}</p>
+                      {r.date && (
+                        <p className="text-xs mt-0.5" style={{ color: '#8B5A2B' }}>{formatDate(r.date)}</p>
+                      )}
+                    </div>
+                    {r.distance_km && (
+                      <span className="text-sm font-bold" style={{ color: '#C4622D' }}>{r.distance_km} km</span>
+                    )}
+                  </div>
                 </div>
-                {r.distance_km && (
-                  <span className="text-sm font-bold" style={{ color: '#C4622D' }}>{r.distance_km} km</span>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm" style={{ color: '#8B5A2B' }}>Nog geen gedane wandelingen geregistreerd.</p>

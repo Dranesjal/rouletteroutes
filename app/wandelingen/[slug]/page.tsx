@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAllHikes, getHikeBySlug, formatDate, formatDuration, Hike } from '@/lib/hikes';
+import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,10 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
   const nextHike: Hike | null = allHikes.find(
     h => h.status === 'upcoming' && h.registrationOpen && h.slug !== slug
   ) ?? null;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isLoggedIn = !!user;
 
   const difficultyLabel = { easy: 'Makkelijk', moderate: 'Gemiddeld', hard: 'Zwaar' }[hike.difficulty];
 
@@ -40,6 +45,14 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
         <h1 className="font-display text-4xl font-black mb-2" style={{ color: '#2C1A0E' }}>{hike.title}</h1>
         {hike.subtitle && <p className="text-lg" style={{ color: '#5C3D1E' }}>{hike.subtitle}</p>}
       </div>
+
+      {/* Route foto */}
+      {hike.routeImageUrl && (
+        <div className="mb-8 rounded-2xl overflow-hidden border" style={{ borderColor: '#EDD49A' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={hike.routeImageUrl} alt={`Route ${hike.title}`} className="w-full object-cover max-h-80" />
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
@@ -90,6 +103,25 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
           <p className="text-base mb-4" style={{ color: '#5C3D1E' }}>Wil je mee roamen op de {hike.title}? Meld je dan snel aan!</p>
           <Link href={`/aanmelden?wandeling=${hike.slug}`} className="btn-primary">Aanmelden</Link>
         </div>
+      )}
+
+      {/* Groepsfoto — alleen voor ingelogde roamers */}
+      {hike.groupPhotoUrl && hike.status === 'completed' && (
+        isLoggedIn ? (
+          <div className="mb-8">
+            <h2 className="font-display font-bold text-xl mb-3" style={{ color: '#2C1A0E' }}>Groepsfoto</h2>
+            <div className="rounded-2xl overflow-hidden border" style={{ borderColor: '#EDD49A' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={hike.groupPhotoUrl} alt={`Groepsfoto ${hike.title}`} className="w-full object-cover" />
+            </div>
+          </div>
+        ) : (
+          <div className="mb-8 rounded-xl p-5 text-center border" style={{ background: '#FAF3E3', borderColor: '#EDD49A' }}>
+            <p className="text-sm font-semibold mb-2" style={{ color: '#2C1A0E' }}>📷 Er is een groepsfoto beschikbaar</p>
+            <p className="text-xs mb-3" style={{ color: '#8B5A2B' }}>Log in als Roamer om de groepsfoto te bekijken.</p>
+            <Link href="/login" className="btn-primary" style={{ display: 'inline-block' }}>Inloggen</Link>
+          </div>
+        )
       )}
 
       {/* Wandelkilometerboekje */}

@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
     registration_note: body.registration_note?.trim() || '',
     registration_success_note: body.registration_success_note?.trim() || '',
     registration_form: body.registration_form === 'full' ? 'full' : 'basic',
+    route_image_url: body.route_image_url?.trim() || '',
+    group_photo_url: body.group_photo_url?.trim() || '',
   }, { onConflict: 'slug' }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

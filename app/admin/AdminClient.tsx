@@ -83,6 +83,8 @@ interface DbHike {
   registration_note: string;
   registration_success_note: string;
   registration_form: 'basic' | 'full';
+  route_image_url: string;
+  group_photo_url: string;
 }
 
 const EMPTY_HIKE: DbHike = {
@@ -91,6 +93,7 @@ const EMPTY_HIKE: DbHike = {
   meeting_point: '', meeting_time: '', start_time: '', registration_open: false,
   has_lunch: false, lunch_venue: '', lunch_url: '', difficulty: 'easy', terrain: '', wandelboekje: false,
   registration_note: '', registration_success_note: '', registration_form: 'basic' as const,
+  route_image_url: '', group_photo_url: '',
 };
 
 interface Props {
@@ -888,6 +891,14 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
               <div className="sm:col-span-2">
                 <label className="label-sm block mb-1">Bevestigingsnotitie <span className="font-normal" style={{ color: '#8B5A2B' }}>— bericht na aanmelding (optioneel)</span></label>
                 <textarea className="field" rows={3} placeholder="Bijv. wat de roamer na aanmelding ontvangt of moet doen..." value={hikeForm.registration_success_note} onChange={setHikeField('registration_success_note')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Routefoto URL <span className="font-normal" style={{ color: '#8B5A2B' }}>— zichtbaar op hikepagina</span></label>
+                <input className="field" type="url" placeholder="https://..." value={hikeForm.route_image_url} onChange={setHikeField('route_image_url')} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Groepsfoto URL <span className="font-normal" style={{ color: '#8B5A2B' }}>— alleen voor ingelogde roamers</span></label>
+                <input className="field" type="url" placeholder="https://..." value={hikeForm.group_photo_url} onChange={setHikeField('group_photo_url')} />
               </div>
               <div>
                 <label className="label-sm block mb-1">Aanmeldformulier</label>
