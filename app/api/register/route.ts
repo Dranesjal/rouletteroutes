@@ -56,6 +56,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Opslaan mislukt. Probeer het opnieuw.' }, { status: 500 });
   }
 
+  // Sla dieetwensen op in profiel zodat ze de volgende keer pre-ingevuld zijn
+  if (linkedId && body.dietary?.trim()) {
+    await service.from('profiles').update({ dietary: body.dietary.trim() }).eq('id', linkedId);
+  }
+
   // Email notification (optional)
   if (process.env.RESEND_API_KEY && process.env.NOTIFY_EMAIL) {
     try {

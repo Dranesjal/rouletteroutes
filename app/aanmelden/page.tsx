@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 interface Hike {
   slug: string;
@@ -49,6 +50,7 @@ function AanmeldenForm() {
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [prefilled, setPrefilled] = useState(false);
 
   useEffect(() => {
     fetch('/api/hikes').then((r) => r.json()).then((data) => {
@@ -57,6 +59,25 @@ function AanmeldenForm() {
       if (!preselect && open.length === 1) setForm((f) => ({ ...f, wandeling: open[0].slug }));
     }).catch(() => {});
   }, [preselect]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from('profiles').select('name, dietary').eq('id', user.id).single()
+        .then(({ data: profile }) => {
+          if (!profile) return;
+          setForm(f => ({
+            ...f,
+            name: profile.name || f.name,
+            email: user.email || f.email,
+            emailConfirm: user.email || f.emailConfirm,
+            dietary: profile.dietary || f.dietary,
+          }));
+          setPrefilled(true);
+        });
+    });
+  }, []);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -171,6 +192,13 @@ function AanmeldenForm() {
         </div>
       )}
 
+      {prefilled && (
+        <div className="mb-4 px-4 py-3 rounded-xl text-sm flex items-center gap-2" style={{ background: '#F2F8F4', border: '1px solid #b6d9c0', color: '#2C3E2E' }}>
+          <span>✓</span>
+          <span>Gegevens ingevuld vanuit je Roamer-profiel. Pas aan indien nodig.</span>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Wandeling */}
         {hikes.length > 1 && (
@@ -267,12 +295,15 @@ function AanmeldenForm() {
             </div>
             <div>
               <label className="label-sm block mb-1">E-mailadres <span style={{ color: '#C4622D' }}>*</span></label>
-              <input className="field" type="email" placeholder="jij@voorbeeld.nl" value={form.email} onChange={set('email')} required />
+              <input className="field" type="email" placeholder="jij@voorbeeld.nl" value={form.email} onChange={set('email')} required
+                readOnly={prefilled} style={prefilled ? { background: '#F5F5F5', cursor: 'default' } : undefined} />
             </div>
-            <div>
-              <label className="label-sm block mb-1">E-mailadres (controle) <span style={{ color: '#C4622D' }}>*</span></label>
-              <input className="field" type="email" placeholder="Herhaal je e-mailadres" value={form.emailConfirm} onChange={set('emailConfirm')} required />
-            </div>
+            {!prefilled && (
+              <div>
+                <label className="label-sm block mb-1">E-mailadres (controle) <span style={{ color: '#C4622D' }}>*</span></label>
+                <input className="field" type="email" placeholder="Herhaal je e-mailadres" value={form.emailConfirm} onChange={set('emailConfirm')} required />
+              </div>
+            )}
           </div>
         </div>
 
