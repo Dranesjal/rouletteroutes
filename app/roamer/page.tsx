@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAdminClient } from '@/lib/supabase/admin';
 import { formatDate } from '@/lib/hikes';
 import ProfileForm from './ProfileForm';
 
@@ -17,12 +18,38 @@ export default async function RoamerPage() {
     .eq('id', user.id)
     .single();
 
-  const service = await createServiceClient();
-  const { data: registrations } = await service
-    .from('registrations')
-    .select('id, wandeling, registered_at, actief')
-    .eq('profile_id', user.id)
-    .order('registered_at', { ascending: false });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const service = getAdminClient() as any;
+
+  type Reg = { id: string; wandeling: string; registered_at: string; actief: boolean; profile_id: string | null };
+
+  // Fetch by profile_id AND by email (catches pre-account registrations)
+  const [{ data: byId }, { data: byEmail }] = await Promise.all([
+    service.from('registrations')
+      .select('id, wandeling, registered_at, actief, profile_id')
+      .eq('profile_id', user.id)
+      .order('registered_at', { ascending: false }) as Promise<{ data: Reg[] | null }>,
+    service.from('registrations')
+      .select('id, wandeling, registered_at, actief, profile_id')
+      .eq('email', user.email ?? '')
+      .is('profile_id', null)
+      .order('registered_at', { ascending: false }) as Promise<{ data: Reg[] | null }>,
+  ]);
+
+  // Backfill profile_id for registrations found by email
+  const unlinked = (byEmail ?? []).filter(r => !r.profile_id);
+  if (unlinked.length > 0) {
+    await service.from('registrations')
+      .update({ profile_id: user.id })
+      .in('id', unlinked.map((r: Reg) => r.id));
+  }
+
+  // Merge and deduplicate
+  const seen = new Set((byId ?? []).map(r => r.id));
+  const registrations: Reg[] = [
+    ...(byId ?? []),
+    ...(byEmail ?? []).filter(r => !seen.has(r.id)),
+  ].sort((a, b) => new Date(b.registered_at).getTime() - new Date(a.registered_at).getTime());
 
   const { data: walkRecords } = await supabase
     .from('walk_records')
