@@ -314,9 +314,9 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   };
 
   const fillFromHike = (slug: string) => {
-    const hike = hikes.find(h => h.slug === slug);
+    const hike = allHikes.find(h => h.slug === slug);
     if (!hike) return;
-    setWalkForm(f => ({ ...f, walk_slug: slug, title: hike.title, date: hike.date, distance_km: String(hike.distanceKm) }));
+    setWalkForm(f => ({ ...f, walk_slug: slug, title: hike.title, date: hike.date, distance_km: String(hike.distance_km) }));
   };
 
   // ── Wandeling afsluiten ──
@@ -655,8 +655,8 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                 <select className="field" value={walkForm.walk_slug}
                   onChange={e => { setWalkForm(f => ({ ...f, walk_slug: e.target.value })); fillFromHike(e.target.value); }}>
                   <option value="">Handmatig invullen...</option>
-                  {hikes.map(h => (
-                    <option key={h.slug} value={h.slug}>{h.title}</option>
+                  {allHikes.map(h => (
+                    <option key={h.slug} value={h.slug}>{h.title} ({h.distance_km} km)</option>
                   ))}
                 </select>
               </div>
@@ -673,8 +673,14 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                   onChange={e => setWalkForm(f => ({ ...f, date: e.target.value }))} />
               </div>
               <div>
-                <label className="label-sm block mb-1">Afstand (km)</label>
-                <input className="field" type="number" step="0.1" min="0" placeholder="bijv. 11"
+                <label className="label-sm block mb-1">
+                  Werkelijk gelopen (km)
+                  {walkForm.walk_slug && (() => {
+                    const h = allHikes.find(x => x.slug === walkForm.walk_slug);
+                    return h ? <span className="ml-1 font-normal" style={{ color: '#8B5A2B' }}>· officieel {h.distance_km} km</span> : null;
+                  })()}
+                </label>
+                <input className="field" type="number" step="0.01" min="0" placeholder="bijv. 11"
                   value={walkForm.distance_km}
                   onChange={e => setWalkForm(f => ({ ...f, distance_km: e.target.value }))} />
               </div>
