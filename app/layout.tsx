@@ -26,10 +26,17 @@ export const metadata: Metadata = {
   },
 };
 
+const isStaging = process.env.NEXT_PUBLIC_APP_ENV === 'staging';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="nl" className={`${playfair.variable} ${lato.variable}`}>
       <body className="min-h-screen flex flex-col">
+        {isStaging && (
+          <div className="w-full text-center text-xs font-bold py-1.5 px-4" style={{ background: '#7C3AED', color: 'white', letterSpacing: '0.05em' }}>
+            STAGING OMGEVING - geen echte data
+          </div>
+        )}
         <Nav />
         <main className="flex-1">{children}</main>
         <Footer />
