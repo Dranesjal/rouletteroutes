@@ -84,6 +84,14 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
         </dl>
       </div>
 
+      {/* CTA */}
+      {hike.status === 'upcoming' && hike.registrationOpen && (
+        <div className="text-center py-8 border-t" style={{ borderColor: '#EDD49A' }}>
+          <p className="text-base mb-4" style={{ color: '#5C3D1E' }}>Wil je mee roamen op de {hike.title}? Meld je dan snel aan!</p>
+          <Link href={`/aanmelden?wandeling=${hike.slug}`} className="btn-primary">Aanmelden</Link>
+        </div>
+      )}
+
       {/* Wandelkilometerboekje */}
       {hike.wandelboekje && (
         <div className="mb-8 rounded-xl overflow-hidden border" style={{ borderColor: '#4A7C59' }}>
@@ -124,14 +132,6 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
                 </p>
               </div>
           </div>
-        </div>
-      )}
-
-      {/* CTA */}
-      {hike.status === 'upcoming' && hike.registrationOpen && (
-        <div className="text-center py-8 border-t" style={{ borderColor: '#EDD49A' }}>
-          <p className="text-base mb-4" style={{ color: '#5C3D1E' }}>Ga je mee, Roamer? Meld je aan!</p>
-          <Link href={`/aanmelden?wandeling=${hike.slug}`} className="btn-primary">Aanmelden</Link>
         </div>
       )}
 
