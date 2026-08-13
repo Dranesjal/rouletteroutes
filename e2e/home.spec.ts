@@ -15,9 +15,9 @@ test.describe('Homepage', () => {
     await expect(page.getByRole('link', { name: /word roamer/i })).toBeVisible();
   });
 
-  test('CTA links to aanmelden', async ({ page }) => {
+  test('CTA links to wandelingen', async ({ page }) => {
     await page.goto('/');
-    const cta = page.getByRole('link', { name: /aanmelden/i }).first();
+    const cta = page.getByRole('link', { name: /bekijk wandelingen/i }).first();
     await expect(cta).toBeVisible();
   });
 
