@@ -69,7 +69,7 @@ interface Props {
   walkRecords: WalkRecord[];
 }
 
-type Tab = 'registrations' | 'lunch' | 'wandelingen' | 'roamers' | 'looprecords';
+type Tab = 'registrations' | 'wandelingen' | 'roamers' | 'looprecords';
 
 const euro = (n: number) => `€ ${n.toFixed(2).replace('.', ',')}`;
 
@@ -104,6 +104,9 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   const [walkForm, setWalkForm] = useState({ user_id: '', walk_slug: '', title: '', date: '', distance_km: '', notes: '' });
   const [walkSaving, setWalkSaving] = useState(false);
   const [walkError, setWalkError] = useState('');
+
+  // Lunch open/dicht per wandeling
+  const [lunchOpen, setLunchOpen] = useState<Record<string, boolean>>({});
 
   // Wandelingen complete state
   const [completing, setCompleting] = useState<string | null>(null);
@@ -266,7 +269,6 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
       <div className="flex gap-2 mb-8 border-b overflow-x-auto" style={{ borderColor: '#EDD49A' }}>
         {([
           ['registrations', `Aanmeldingen (${regs.filter(r => r.actief).length})`],
-          ['lunch', `Lunch (${regs.filter(r => r.wil_lunchen && r.actief).length})`],
           ['wandelingen', `Wandelingen (${uniqueWandelingen.length})`],
           ['roamers', `Roamers (${roamers.length})`],
           ['looprecords', `Looprecords (${walkRecords.length})`],
@@ -359,56 +361,6 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
               </table>
             </div>
           )}
-        </div>
-      )}
-
-      {/* ── Lunch ── */}
-      {tab === 'lunch' && (
-        <div className="space-y-8">
-          {uniqueWandelingen.length === 0 ? (
-            <p className="text-center py-12" style={{ color: '#8B5A2B' }}>Geen aanmeldingen.</p>
-          ) : uniqueWandelingen.map(wandeling => {
-            const all = regs.filter(r => r.wandeling === wandeling && r.actief);
-            const lunchers = all.filter(r => r.wil_lunchen);
-            return (
-              <div key={wandeling} className="rounded-xl border overflow-hidden" style={{ borderColor: '#EDD49A' }}>
-                <div className="px-5 py-3 flex items-center justify-between" style={{ background: '#F5E4C0' }}>
-                  <span className="font-bold text-sm" style={{ color: '#2C1A0E' }}>{wandeling}</span>
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ background: '#C4622D', color: 'white' }}>
-                    {lunchers.length} / {all.length} lunch
-                  </span>
-                </div>
-                {lunchers.length === 0 ? (
-                  <p className="px-5 py-4 text-sm" style={{ color: '#8B5A2B' }}>Niemand aangemeld voor lunch.</p>
-                ) : (
-                  <table className="w-full text-sm">
-                    <thead><tr style={{ background: '#FAF3E3' }}>
-                      {['Naam', 'E-mail', 'Telefoon', 'Dieetwensen', 'Betaald'].map(h => (
-                        <th key={h} className="text-left px-4 py-2 font-bold text-xs uppercase tracking-wide" style={{ color: '#8B5A2B' }}>{h}</th>
-                      ))}
-                    </tr></thead>
-                    <tbody>
-                      {lunchers.map((r, i) => (
-                        <tr key={r.id} style={{ background: i % 2 === 0 ? 'white' : '#FAF3E3', color: '#2C1A0E' }}>
-                          <td className="px-4 py-3 font-semibold">{r.name}</td>
-                          <td className="px-4 py-3">{r.email}</td>
-                          <td className="px-4 py-3">{r.phone || '-'}</td>
-                          <td className="px-4 py-3">{r.dietary || '-'}</td>
-                          <td className="px-4 py-3">
-                            <button onClick={() => toggleBetaald(r.id, r.betaald)}
-                              className="text-xs px-2 py-1 rounded font-semibold"
-                              style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
-                              {r.betaald ? '✓ Betaald' : 'Open'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            );
-          })}
         </div>
       )}
 
@@ -527,6 +479,58 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                     </div>
                   )}
                 </div>
+
+                {/* Lunch */}
+                {(() => {
+                  const lunchers = wandRegs.filter(r => r.wil_lunchen);
+                  const isOpen = lunchOpen[slug] ?? false;
+                  return (
+                    <div>
+                      <button
+                        onClick={() => setLunchOpen(prev => ({ ...prev, [slug]: !isOpen }))}
+                        className="flex items-center gap-2 text-sm font-bold w-full text-left"
+                        style={{ color: '#2C1A0E' }}
+                      >
+                        <span style={{ color: '#8B5A2B', fontSize: '0.7rem' }}>{isOpen ? '▼' : '▶'}</span>
+                        Lunch
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full ml-1"
+                          style={{ background: lunchers.length > 0 ? '#C4622D' : '#EDD49A', color: lunchers.length > 0 ? 'white' : '#8B5A2B' }}>
+                          {lunchers.length} van {wandRegs.length}
+                        </span>
+                      </button>
+                      {isOpen && (
+                        <div className="mt-3 rounded-xl overflow-hidden border" style={{ borderColor: '#EDD49A' }}>
+                          {lunchers.length === 0 ? (
+                            <p className="px-4 py-3 text-sm" style={{ color: '#8B5A2B' }}>Niemand aangemeld voor lunch.</p>
+                          ) : (
+                            <table className="w-full text-sm">
+                              <thead><tr style={{ background: '#FAF3E3' }}>
+                                {['Naam', 'Dieetwensen', 'Betaald'].map(h => (
+                                  <th key={h} className="text-left px-4 py-2 font-bold text-xs uppercase tracking-wide" style={{ color: '#8B5A2B' }}>{h}</th>
+                                ))}
+                              </tr></thead>
+                              <tbody>
+                                {lunchers.map((r, i) => (
+                                  <tr key={r.id} style={{ background: i % 2 === 0 ? 'white' : '#FAF3E3', color: '#2C1A0E' }}>
+                                    <td className="px-4 py-2 font-semibold">{r.name}</td>
+                                    <td className="px-4 py-2 text-sm">{r.dietary || '-'}</td>
+                                    <td className="px-4 py-2">
+                                      <button onClick={() => toggleBetaald(r.id, r.betaald)}
+                                        className="text-xs px-2 py-1 rounded font-semibold"
+                                        style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
+                                        {r.betaald ? '✓ Betaald' : 'Open'}
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Afsluiten resultaat */}
                 {result && (
