@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { formatDate } from '@/lib/hikes';
+import ProfileForm from './ProfileForm';
 
 export const metadata = { title: 'Mijn profiel | Roulette Routes Roamers' };
 
@@ -12,7 +13,7 @@ export default async function RoamerPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('name, role')
+    .select('name, role, dietary')
     .eq('id', user.id)
     .single();
 
@@ -49,6 +50,18 @@ export default async function RoamerPage() {
         <div className="card p-5 text-center">
           <p className="text-3xl font-black font-display" style={{ color: '#C4622D' }}>{totalKm} km</p>
           <p className="text-xs uppercase tracking-wider font-bold mt-1" style={{ color: '#8B5A2B' }}>Totaal gelopen</p>
+        </div>
+      </div>
+
+      {/* Profiel bewerken */}
+      <div className="mb-10">
+        <h2 className="font-display font-bold text-xl mb-4" style={{ color: '#2C1A0E' }}>Mijn gegevens</h2>
+        <div className="card p-5">
+          <ProfileForm
+            userId={user.id}
+            initialName={profile?.name ?? ''}
+            initialDietary={profile?.dietary ?? ''}
+          />
         </div>
       </div>
 
