@@ -32,8 +32,8 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
       {/* Header */}
       <div className="mb-8 mt-4">
         <div className="flex items-center gap-3 mb-3">
-          <span className={hike.status === 'upcoming' ? 'badge-upcoming' : 'badge-past'}>
-            {hike.status === 'upcoming' ? 'Aankomend' : 'Gedaan'}
+          <span className={hike.status === 'upcoming' ? 'badge-upcoming' : hike.status === 'cancelled' ? 'badge-cancelled' : 'badge-past'}>
+            {hike.status === 'upcoming' ? 'Aankomend' : hike.status === 'cancelled' ? 'Geannuleerd' : 'Afgelopen'}
           </span>
           <span className="text-sm" style={{ color: '#8B5A2B' }}>{hike.region}</span>
         </div>
@@ -145,6 +145,13 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
           ) : (
             <Link href="/wandelingen" className="btn-primary">Bekijk alle wandelingen</Link>
           )}
+        </div>
+      )}
+
+      {hike.status === 'cancelled' && (
+        <div className="text-center py-8 border-t" style={{ borderColor: '#EDD49A' }}>
+          <p className="text-base mb-4" style={{ color: '#991B1B' }}>Deze wandeling is geannuleerd.</p>
+          <Link href="/wandelingen" className="btn-primary">Bekijk andere wandelingen</Link>
         </div>
       )}
     </div>

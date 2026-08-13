@@ -38,7 +38,7 @@ interface HikeSummary {
   title: string;
   date: string;
   distanceKm: number;
-  status: 'upcoming' | 'completed';
+  status: 'upcoming' | 'completed' | 'cancelled';
 }
 
 interface Kost {
@@ -69,7 +69,7 @@ interface DbHike {
   distance_km: number;
   duration_min: number;
   description: string;
-  status: 'upcoming' | 'completed';
+  status: 'upcoming' | 'completed' | 'cancelled';
   meeting_point: string;
   meeting_time: string;
   start_time: string;
@@ -865,7 +865,8 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                 <label className="label-sm block mb-1">Status</label>
                 <select className="field" value={hikeForm.status} onChange={setHikeField('status')}>
                   <option value="upcoming">Aankomend</option>
-                  <option value="completed">Voltooid</option>
+                  <option value="completed">Afgelopen</option>
+                  <option value="cancelled">Geannuleerd</option>
                 </select>
               </div>
               <div>
@@ -931,8 +932,8 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-bold text-sm" style={{ color: '#2C1A0E' }}>{h.title}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${h.status === 'upcoming' ? 'badge-upcoming' : 'badge-past'}`}>
-                          {h.status === 'upcoming' ? 'Aankomend' : 'Voltooid'}
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${h.status === 'upcoming' ? 'badge-upcoming' : h.status === 'cancelled' ? 'badge-cancelled' : 'badge-past'}`}>
+                          {h.status === 'upcoming' ? 'Aankomend' : h.status === 'cancelled' ? 'Geannuleerd' : 'Afgelopen'}
                         </span>
                         {h.registration_open && <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: '#D1FAE5', color: '#065F46' }}>Aanmelding open</span>}
                         {h.has_lunch && <span className="text-xs" style={{ color: '#8B5A2B' }}>🍽 {h.lunch_venue || 'Lunch'}</span>}

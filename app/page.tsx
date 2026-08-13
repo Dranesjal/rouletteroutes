@@ -131,8 +131,8 @@ export default async function HomePage() {
                 <div className="h-32 flex items-center justify-center text-5xl" style={{ background: '#F5E4C0' }}>🌲</div>
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className={hike.status === 'upcoming' ? 'badge-upcoming' : 'badge-past'}>
-                      {hike.status === 'upcoming' ? 'Aankomend' : 'Gedaan'}
+                    <span className={hike.status === 'upcoming' ? 'badge-upcoming' : hike.status === 'cancelled' ? 'badge-cancelled' : 'badge-past'}>
+                      {hike.status === 'upcoming' ? 'Aankomend' : hike.status === 'cancelled' ? 'Geannuleerd' : 'Afgelopen'}
                     </span>
                     <span className="text-xs" style={{ color: '#8B5A2B' }}>{hike.distanceKm} km</span>
                   </div>

@@ -41,7 +41,7 @@ export default async function AdminPage() {
     title: h.title as string,
     date: h.date as string,
     distanceKm: h.distance_km as number,
-    status: h.status as 'upcoming' | 'completed',
+    status: h.status as 'upcoming' | 'completed' | 'cancelled',
   }));
 
   return (

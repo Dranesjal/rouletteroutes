@@ -7,6 +7,7 @@ export default async function WandelingenPage() {
   const hikes = await getAllHikes();
   const upcoming = hikes.filter((h) => h.status === 'upcoming');
   const past = hikes.filter((h) => h.status === 'completed');
+  const cancelled = hikes.filter((h) => h.status === 'cancelled');
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
@@ -27,10 +28,21 @@ export default async function WandelingenPage() {
       )}
 
       {past.length > 0 && (
-        <section>
-          <h2 className="font-display font-bold text-xl mb-5" style={{ color: '#2C1A0E' }}>✅ Gedaan</h2>
+        <section className="mb-12">
+          <h2 className="font-display font-bold text-xl mb-5" style={{ color: '#2C1A0E' }}>🥾 Afgelopen wandelingen</h2>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
             {past.map((hike) => (
+              <HikeCard key={hike.slug} hike={hike} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {cancelled.length > 0 && (
+        <section className="mb-12">
+          <h2 className="font-display font-bold text-xl mb-5" style={{ color: '#2C1A0E' }}>❌ Geannuleerd</h2>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
+            {cancelled.map((hike) => (
               <HikeCard key={hike.slug} hike={hike} />
             ))}
           </div>
@@ -53,8 +65,8 @@ function HikeCard({ hike }: { hike: Awaited<ReturnType<typeof getAllHikes>>[0] }
       <div className="h-36 flex items-center justify-center text-6xl relative" style={{ background: '#F5E4C0' }}>
         🌲
         <div className="absolute top-3 left-3">
-          <span className={hike.status === 'upcoming' ? 'badge-upcoming' : 'badge-past'}>
-            {hike.status === 'upcoming' ? 'Aankomend' : 'Gedaan'}
+          <span className={hike.status === 'upcoming' ? 'badge-upcoming' : hike.status === 'cancelled' ? 'badge-cancelled' : 'badge-past'}>
+            {hike.status === 'upcoming' ? 'Aankomend' : hike.status === 'cancelled' ? 'Geannuleerd' : 'Afgelopen'}
           </span>
         </div>
       </div>

@@ -10,7 +10,7 @@ export interface Hike {
   distanceKm: number;
   durationMin: number;
   description: string;
-  status: 'upcoming' | 'completed';
+  status: 'upcoming' | 'completed' | 'cancelled';
   meetingPoint: string;
   meetingTime: string;
   startTime: string;
