@@ -29,7 +29,7 @@ export default function LoginPage() {
       .eq('id', data.user.id)
       .single();
 
-    if (profile?.role === 'admin') {
+    if (profile?.role === 'admin' || profile?.role === 'super_admin') {
       router.push('/admin');
     } else {
       router.push('/roamer');
