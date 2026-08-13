@@ -48,6 +48,17 @@ interface Kost {
   bedrag: number;
 }
 
+interface WalkRecord {
+  id: string;
+  user_id: string;
+  walk_slug: string | null;
+  title: string;
+  date: string | null;
+  distance_km: number | null;
+  notes: string;
+  verified: boolean;
+}
+
 interface Props {
   adminName: string;
   adminRole: 'admin' | 'super_admin';
@@ -55,9 +66,10 @@ interface Props {
   roamers: Roamer[];
   hikes: HikeSummary[];
   kosten: Kost[];
+  walkRecords: WalkRecord[];
 }
 
-type Tab = 'registrations' | 'lunch' | 'wandelingen' | 'roamers';
+type Tab = 'registrations' | 'lunch' | 'wandelingen' | 'roamers' | 'looprecords';
 
 const euro = (n: number) => `€ ${n.toFixed(2).replace('.', ',')}`;
 
@@ -72,7 +84,7 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
-export default function AdminClient({ adminName, adminRole, registrations, roamers, hikes, kosten: initialKosten }: Props) {
+export default function AdminClient({ adminName, adminRole, registrations, roamers, hikes, kosten: initialKosten, walkRecords: initialWalkRecords }: Props) {
   const router = useRouter();
   const isSuperAdmin = adminRole === 'super_admin';
 
@@ -86,6 +98,12 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   // Kosten local state
   const [kosten, setKosten] = useState<Kost[]>(initialKosten);
   const [kostForm, setKostForm] = useState<Record<string, { omschrijving: string; bedrag: string }>>({});
+
+  // Walk records state
+  const [walkRecords, setWalkRecords] = useState<WalkRecord[]>(initialWalkRecords);
+  const [walkForm, setWalkForm] = useState({ user_id: '', walk_slug: '', title: '', date: '', distance_km: '', notes: '' });
+  const [walkSaving, setWalkSaving] = useState(false);
+  const [walkError, setWalkError] = useState('');
 
   // Wandelingen complete state
   const [completing, setCompleting] = useState<string | null>(null);
@@ -172,6 +190,45 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
     });
   };
 
+  // ── Walk records ──
+  const saveWalkRecord = async () => {
+    setWalkError('');
+    if (!walkForm.user_id || !walkForm.title || !walkForm.date) {
+      setWalkError('Roamer, naam en datum zijn verplicht.');
+      return;
+    }
+    setWalkSaving(true);
+    try {
+      const res = await fetch('/api/admin/walk-records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(walkForm),
+      });
+      const data = await res.json();
+      if (data.error) { setWalkError(data.error); return; }
+      setWalkRecords(prev => [data.record, ...prev.filter(r => r.id !== data.record.id)]);
+      setWalkForm({ user_id: '', walk_slug: '', title: '', date: '', distance_km: '', notes: '' });
+    } finally {
+      setWalkSaving(false);
+    }
+  };
+
+  const deleteWalkRecord = async (id: string) => {
+    if (!confirm('Looprecord verwijderen?')) return;
+    setWalkRecords(prev => prev.filter(r => r.id !== id));
+    await fetch('/api/admin/walk-records', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+  };
+
+  const fillFromHike = (slug: string) => {
+    const hike = hikes.find(h => h.slug === slug);
+    if (!hike) return;
+    setWalkForm(f => ({ ...f, walk_slug: slug, title: hike.title, date: hike.date, distance_km: String(hike.distanceKm) }));
+  };
+
   // ── Wandeling afsluiten ──
   const completeHike = async (slug: string) => {
     setCompleting(slug);
@@ -212,6 +269,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
           ['lunch', `Lunch (${regs.filter(r => r.wil_lunchen && r.actief).length})`],
           ['wandelingen', `Wandelingen (${uniqueWandelingen.length})`],
           ['roamers', `Roamers (${roamers.length})`],
+          ['looprecords', `Looprecords (${walkRecords.length})`],
         ] as [Tab, string][]).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)}
             className="pb-3 px-2 text-sm font-bold border-b-2 transition-all whitespace-nowrap"
@@ -480,6 +538,113 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── Looprecords ── */}
+      {tab === 'looprecords' && (
+        <div className="space-y-8">
+          {/* Formulier */}
+          <div className="card p-6">
+            <h2 className="font-display font-bold text-lg mb-4" style={{ color: '#2C1A0E' }}>Looprecord toevoegen</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="label-sm block mb-1">Roamer <span style={{ color: '#C4622D' }}>*</span></label>
+                <select className="field" value={walkForm.user_id}
+                  onChange={e => setWalkForm(f => ({ ...f, user_id: e.target.value }))}>
+                  <option value="">Kies een roamer...</option>
+                  {roamers.map(r => (
+                    <option key={r.id} value={r.id}>{r.name || r.id}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Wandeling (kies of typ zelf)</label>
+                <select className="field" value={walkForm.walk_slug}
+                  onChange={e => { setWalkForm(f => ({ ...f, walk_slug: e.target.value })); fillFromHike(e.target.value); }}>
+                  <option value="">Handmatig invullen...</option>
+                  {hikes.map(h => (
+                    <option key={h.slug} value={h.slug}>{h.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Naam wandeling <span style={{ color: '#C4622D' }}>*</span></label>
+                <input className="field" placeholder="bijv. Hoge Veluwe · Wandeldag"
+                  value={walkForm.title}
+                  onChange={e => setWalkForm(f => ({ ...f, title: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Datum <span style={{ color: '#C4622D' }}>*</span></label>
+                <input className="field" type="date"
+                  value={walkForm.date}
+                  onChange={e => setWalkForm(f => ({ ...f, date: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Afstand (km)</label>
+                <input className="field" type="number" step="0.1" min="0" placeholder="bijv. 11"
+                  value={walkForm.distance_km}
+                  onChange={e => setWalkForm(f => ({ ...f, distance_km: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label-sm block mb-1">Notitie (optioneel)</label>
+                <input className="field" placeholder="bijv. Eerste editie"
+                  value={walkForm.notes}
+                  onChange={e => setWalkForm(f => ({ ...f, notes: e.target.value }))} />
+              </div>
+            </div>
+            {walkError && (
+              <p className="text-sm mt-3 p-3 rounded-lg" style={{ background: '#FEE2E2', color: '#991B1B' }}>{walkError}</p>
+            )}
+            <button onClick={saveWalkRecord} disabled={walkSaving}
+              className="btn-primary mt-4"
+              style={{ opacity: walkSaving ? 0.7 : 1 }}>
+              {walkSaving ? 'Opslaan...' : '+ Toevoegen'}
+            </button>
+          </div>
+
+          {/* Bestaande records */}
+          <div>
+            <h2 className="font-display font-bold text-lg mb-4" style={{ color: '#2C1A0E' }}>
+              Alle looprecords ({walkRecords.length})
+            </h2>
+            {walkRecords.length === 0 ? (
+              <p className="text-sm" style={{ color: '#8B5A2B' }}>Nog geen looprecords.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border" style={{ borderColor: '#EDD49A' }}>
+                <table className="w-full text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  <thead style={{ background: '#F5E4C0' }}>
+                    <tr>
+                      {['Roamer', 'Wandeling', 'Datum', 'Afstand', 'Notitie', ''].map(h => (
+                        <th key={h} className="text-left px-3 py-3 font-bold text-xs uppercase tracking-wide whitespace-nowrap" style={{ color: '#8B5A2B' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {walkRecords.map((r, i) => {
+                      const roamer = roamers.find(ro => ro.id === r.user_id);
+                      return (
+                        <tr key={r.id} style={{ background: i % 2 === 0 ? '#FAF3E3' : 'white', color: '#2C1A0E' }}>
+                          <td className="px-3 py-2 font-semibold whitespace-nowrap">{roamer?.name || r.user_id.slice(0, 8)}</td>
+                          <td className="px-3 py-2">{r.title}</td>
+                          <td className="px-3 py-2 whitespace-nowrap" style={{ color: '#8B5A2B' }}>
+                            {r.date ? new Date(r.date).toLocaleDateString('nl-NL') : '-'}
+                          </td>
+                          <td className="px-3 py-2">{r.distance_km ? `${r.distance_km} km` : '-'}</td>
+                          <td className="px-3 py-2 text-xs" style={{ color: '#8B5A2B' }}>{r.notes || '-'}</td>
+                          <td className="px-3 py-2">
+                            <button onClick={() => deleteWalkRecord(r.id)}
+                              className="text-xs px-2 py-1 rounded font-semibold"
+                              style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

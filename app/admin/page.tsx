@@ -29,10 +29,11 @@ export default async function AdminPage() {
   }
 
   const service = await createServiceClient();
-  const [{ data: registrations }, { data: profiles }, { data: kosten }] = await Promise.all([
+  const [{ data: registrations }, { data: profiles }, { data: kosten }, { data: walkRecords }] = await Promise.all([
     service.from('registrations').select('*').order('registered_at', { ascending: false }),
     service.from('profiles').select('*').order('created_at', { ascending: false }),
     service.from('wandeling_kosten').select('*').order('created_at'),
+    service.from('walk_records').select('*').order('date', { ascending: false }),
   ]);
 
   const hikes = STATIC_HIKES.map(h => ({
@@ -51,6 +52,7 @@ export default async function AdminPage() {
       roamers={profiles ?? []}
       hikes={hikes}
       kosten={kosten ?? []}
+      walkRecords={walkRecords ?? []}
     />
   );
 }
