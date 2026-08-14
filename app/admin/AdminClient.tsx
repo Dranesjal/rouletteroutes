@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import PhotoUpload from './PhotoUpload';
@@ -167,6 +167,9 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   const [regProducts, setRegProducts] = useState<RegProduct[]>(initialRegProducts);
   const [productForm, setProductForm] = useState<Record<string, { naam: string; prijs: string }>>({});
   const [productenOpen, setProductenOpen] = useState<Record<string, boolean>>({});
+
+  // Uitgebreide registratie details
+  const [expandedReg, setExpandedReg] = useState<string | null>(null);
 
   // Collapsible secties per wandeling
   const [lunchOpen, setLunchOpen] = useState<Record<string, boolean>>({});
@@ -607,68 +610,129 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {allWandRegs.map((r, i) => (
-                                    <tr key={r.id} style={{ background: i % 2 === 0 ? 'white' : '#FAF3E3', opacity: r.actief ? 1 : 0.6, color: '#2C1A0E' }}>
-                                      <td className="px-3 py-2 font-semibold whitespace-nowrap">{r.name}</td>
-                                      <td className="px-3 py-2 text-xs">{r.email}</td>
-                                      <td className="px-3 py-2">
-                                        <span className="text-xs font-semibold px-2 py-0.5 rounded"
-                                          style={{ background: r.profile_id ? '#D1FAE5' : '#F3F4F6', color: r.profile_id ? '#065F46' : '#6B7280' }}>
-                                          {r.profile_id ? 'Roamer' : 'Gast'}
-                                        </span>
-                                      </td>
-                                      <td className="px-3 py-2">
-                                        <button onClick={() => toggleActief(r.id, r.actief)}
-                                          className="text-xs px-2 py-1 rounded font-semibold"
-                                          style={{ background: r.actief ? '#D1FAE5' : '#FEE2E2', color: r.actief ? '#065F46' : '#991B1B' }}>
-                                          {r.actief ? 'Actief' : 'Inactief'}
-                                        </button>
-                                      </td>
-                                      <td className="px-3 py-2">
-                                        <button onClick={() => toggleBetaald(r.id, r.betaald)}
-                                          className="text-xs px-2 py-1 rounded font-semibold"
-                                          style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
-                                          {r.betaald ? '✓ Betaald' : 'Open'}
-                                        </button>
-                                      </td>
-                                      <td className="px-3 py-2">
-                                        {slugProducts.length > 0 ? (
-                                          <div className="flex flex-wrap gap-1 min-w-[140px]">
-                                            {slugProducts.map(p => {
-                                              const assigned = regProducts.some(rp => rp.registration_id === r.id && rp.product_id === p.id);
-                                              return (
-                                                <button key={p.id} onClick={() => toggleRegProduct(r.id, p)}
-                                                  className="text-xs px-2 py-0.5 rounded-full font-semibold transition-colors"
-                                                  style={{ background: assigned ? '#C4622D' : '#F5E4C0', color: assigned ? 'white' : '#8B5A2B' }}
-                                                  title={`${p.naam}: ${euro(Number(p.prijs))}`}>
-                                                  {assigned ? '✓ ' : '+ '}{p.naam}
-                                                </button>
-                                              );
-                                            })}
-                                            {regTotal(r.id) > 0 && (
-                                              <span className="text-xs font-black ml-1" style={{ color: '#C4622D', fontVariantNumeric: 'tabular-nums' }}>
-                                                {euro(regTotal(r.id))}
-                                              </span>
+                                  {allWandRegs.map((r, i) => {
+                                    const isExpanded = expandedReg === r.id;
+                                    const rowBg = i % 2 === 0 ? 'white' : '#FAF3E3';
+                                    return (
+                                      <React.Fragment key={r.id}>
+                                        <tr style={{ background: rowBg, opacity: r.actief ? 1 : 0.6, color: '#2C1A0E' }}>
+                                          <td className="px-3 py-2 whitespace-nowrap">
+                                            <button
+                                              onClick={() => setExpandedReg(isExpanded ? null : r.id)}
+                                              className="font-semibold text-left flex items-center gap-1"
+                                              style={{ color: '#2C1A0E' }}
+                                            >
+                                              <span style={{ fontSize: '0.6rem', color: '#8B5A2B' }}>{isExpanded ? '▼' : '▶'}</span>
+                                              {r.name}
+                                            </button>
+                                          </td>
+                                          <td className="px-3 py-2 text-xs">{r.email}</td>
+                                          <td className="px-3 py-2">
+                                            <span className="text-xs font-semibold px-2 py-0.5 rounded"
+                                              style={{ background: r.profile_id ? '#D1FAE5' : '#F3F4F6', color: r.profile_id ? '#065F46' : '#6B7280' }}>
+                                              {r.profile_id ? 'Roamer' : 'Gast'}
+                                            </span>
+                                          </td>
+                                          <td className="px-3 py-2">
+                                            <button onClick={() => toggleActief(r.id, r.actief)}
+                                              className="text-xs px-2 py-1 rounded font-semibold"
+                                              style={{ background: r.actief ? '#D1FAE5' : '#FEE2E2', color: r.actief ? '#065F46' : '#991B1B' }}>
+                                              {r.actief ? 'Actief' : 'Inactief'}
+                                            </button>
+                                          </td>
+                                          <td className="px-3 py-2">
+                                            <button onClick={() => toggleBetaald(r.id, r.betaald)}
+                                              className="text-xs px-2 py-1 rounded font-semibold"
+                                              style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
+                                              {r.betaald ? '✓ Betaald' : 'Open'}
+                                            </button>
+                                          </td>
+                                          <td className="px-3 py-2">
+                                            {slugProducts.length > 0 ? (
+                                              <div className="flex flex-wrap gap-1 min-w-[140px]">
+                                                {slugProducts.map(p => {
+                                                  const assigned = regProducts.some(rp => rp.registration_id === r.id && rp.product_id === p.id);
+                                                  return (
+                                                    <button key={p.id} onClick={() => toggleRegProduct(r.id, p)}
+                                                      className="text-xs px-2 py-0.5 rounded-full font-semibold transition-colors"
+                                                      style={{ background: assigned ? '#C4622D' : '#F5E4C0', color: assigned ? 'white' : '#8B5A2B' }}
+                                                      title={`${p.naam}: ${euro(Number(p.prijs))}`}>
+                                                      {assigned ? '✓ ' : '+ '}{p.naam}
+                                                    </button>
+                                                  );
+                                                })}
+                                                {regTotal(r.id) > 0 && (
+                                                  <span className="text-xs font-black ml-1" style={{ color: '#C4622D', fontVariantNumeric: 'tabular-nums' }}>
+                                                    {euro(regTotal(r.id))}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            ) : (
+                                              <span className="text-xs" style={{ color: '#A07850' }}>—</span>
                                             )}
-                                          </div>
-                                        ) : (
-                                          <span className="text-xs" style={{ color: '#A07850' }}>—</span>
+                                          </td>
+                                          <td className="px-3 py-2 text-center">{r.wil_lunchen ? '✅' : '-'}</td>
+                                          <td className="px-3 py-2 text-center">{r.wilt_boekje ? '✅' : '-'}</td>
+                                          <td className="px-3 py-2 text-xs whitespace-nowrap" style={{ color: '#8B5A2B' }}>
+                                            {new Date(r.registered_at).toLocaleDateString('nl-NL')}
+                                          </td>
+                                          <td className="px-3 py-2">
+                                            {isSuperAdmin && (
+                                              <button onClick={() => deleteReg(r.id, r.name)}
+                                                className="text-xs px-2 py-1 rounded font-semibold"
+                                                style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                                            )}
+                                          </td>
+                                        </tr>
+                                        {isExpanded && (
+                                          <tr style={{ background: '#FDF6E8' }}>
+                                            <td colSpan={10} className="px-4 py-3">
+                                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 text-xs">
+                                                {r.phone && (
+                                                  <div>
+                                                    <p className="font-bold uppercase tracking-wide mb-0.5" style={{ color: '#8B5A2B' }}>Telefoon</p>
+                                                    <p style={{ color: '#2C1A0E' }}>{r.phone}</p>
+                                                  </div>
+                                                )}
+                                                {(r.adres || r.postcode || r.woonplaats) && (
+                                                  <div className="col-span-2">
+                                                    <p className="font-bold uppercase tracking-wide mb-0.5" style={{ color: '#8B5A2B' }}>Adres</p>
+                                                    <p style={{ color: '#2C1A0E' }}>
+                                                      {[r.adres, [r.postcode, r.woonplaats].filter(Boolean).join(' '), r.land].filter(Boolean).join(', ')}
+                                                    </p>
+                                                  </div>
+                                                )}
+                                                {r.geboortedatum && (
+                                                  <div>
+                                                    <p className="font-bold uppercase tracking-wide mb-0.5" style={{ color: '#8B5A2B' }}>Geboortedatum</p>
+                                                    <p style={{ color: '#2C1A0E' }}>{r.geboortedatum}</p>
+                                                  </div>
+                                                )}
+                                                {r.geslacht && (
+                                                  <div>
+                                                    <p className="font-bold uppercase tracking-wide mb-0.5" style={{ color: '#8B5A2B' }}>Geslacht</p>
+                                                    <p style={{ color: '#2C1A0E' }}>{r.geslacht}</p>
+                                                  </div>
+                                                )}
+                                                {r.dietary && (
+                                                  <div>
+                                                    <p className="font-bold uppercase tracking-wide mb-0.5" style={{ color: '#8B5A2B' }}>Dieetwensen</p>
+                                                    <p style={{ color: '#2C1A0E' }}>{r.dietary}</p>
+                                                  </div>
+                                                )}
+                                                {r.message && (
+                                                  <div className="col-span-2">
+                                                    <p className="font-bold uppercase tracking-wide mb-0.5" style={{ color: '#8B5A2B' }}>Bericht</p>
+                                                    <p style={{ color: '#2C1A0E' }}>{r.message}</p>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </td>
+                                          </tr>
                                         )}
-                                      </td>
-                                      <td className="px-3 py-2 text-center">{r.wil_lunchen ? '✅' : '-'}</td>
-                                      <td className="px-3 py-2 text-center">{r.wilt_boekje ? '✅' : '-'}</td>
-                                      <td className="px-3 py-2 text-xs whitespace-nowrap" style={{ color: '#8B5A2B' }}>
-                                        {new Date(r.registered_at).toLocaleDateString('nl-NL')}
-                                      </td>
-                                      <td className="px-3 py-2">
-                                        {isSuperAdmin && (
-                                          <button onClick={() => deleteReg(r.id, r.name)}
-                                            className="text-xs px-2 py-1 rounded font-semibold"
-                                            style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  ))}
+                                      </React.Fragment>
+                                    );
+                                  })}
                                 </tbody>
                               </table>
                             </div>
