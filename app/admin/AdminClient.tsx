@@ -53,6 +53,8 @@ interface RegProduct {
   id: string;
   registration_id: string;
   product_id: string;
+  naam: string;
+  prijs: number;
 }
 
 interface WalkRecord {
@@ -245,8 +247,8 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
     });
   };
 
-  const toggleRegProduct = async (registrationId: string, productId: string) => {
-    const existing = regProducts.find(rp => rp.registration_id === registrationId && rp.product_id === productId);
+  const toggleRegProduct = async (registrationId: string, product: HikeProduct) => {
+    const existing = regProducts.find(rp => rp.registration_id === registrationId && rp.product_id === product.id);
     if (existing) {
       setRegProducts(prev => prev.filter(rp => rp.id !== existing.id));
       await fetch('/api/admin/registration-products', {
@@ -258,7 +260,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
       const res = await fetch('/api/admin/registration-products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ registration_id: registrationId, product_id: productId }),
+        body: JSON.stringify({ registration_id: registrationId, product_id: product.id, naam: product.naam, prijs: product.prijs }),
       });
       const { regProduct } = await res.json();
       if (regProduct) setRegProducts(prev => [...prev, regProduct]);
@@ -414,9 +416,9 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
             const guests = wandRegs.filter(r => r.profile_id === null);
             const betaaldCount = wandRegs.filter(r => r.betaald).length;
             const slugProducts = hikeProducts.filter(p => p.wandeling_slug === slug);
-            const regTotal = (regId: string) => slugProducts
-              .filter(p => regProducts.some(rp => rp.registration_id === regId && rp.product_id === p.id))
-              .reduce((s, p) => s + Number(p.prijs), 0);
+            const regTotal = (regId: string) => regProducts
+              .filter(rp => rp.registration_id === regId)
+              .reduce((s, rp) => s + Number(rp.prijs ?? 0), 0);
             const totalVerwacht = wandRegs.reduce((s, r) => s + regTotal(r.id), 0);
             const totalOntvangen = wandRegs.filter(r => r.betaald).reduce((s, r) => s + regTotal(r.id), 0);
             const result = completeResults[slug];
@@ -599,7 +601,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                             {slugProducts.map(p => {
                                               const assigned = regProducts.some(rp => rp.registration_id === r.id && rp.product_id === p.id);
                                               return (
-                                                <button key={p.id} onClick={() => toggleRegProduct(r.id, p.id)}
+                                                <button key={p.id} onClick={() => toggleRegProduct(r.id, p)}
                                                   className="text-xs px-2 py-0.5 rounded-full font-semibold transition-colors"
                                                   style={{ background: assigned ? '#C4622D' : '#F5E4C0', color: assigned ? 'white' : '#8B5A2B' }}
                                                   title={`${p.naam}: ${euro(Number(p.prijs))}`}>

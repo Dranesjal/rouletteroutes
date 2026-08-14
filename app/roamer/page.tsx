@@ -58,18 +58,18 @@ export default async function RoamerPage() {
       .eq('user_id', user.id)
       .order('date', { ascending: false }),
     service.from('hike_products').select('*') as Promise<{ data: { id: string; wandeling_slug: string; naam: string; prijs: number }[] | null }>,
-    service.from('registration_products').select('registration_id, product_id, hike_products(naam, prijs)') as Promise<{ data: { registration_id: string; product_id: string; hike_products: { naam: string; prijs: number } }[] | null }>,
+    service.from('registration_products').select('registration_id, product_id, naam, prijs') as Promise<{ data: { registration_id: string; product_id: string; naam: string | null; prijs: number | null }[] | null }>,
   ]);
 
-  type RegProductJoin = { registration_id: string; product_id: string; hike_products: { naam: string; prijs: number } };
-  const regProductsMap: Record<string, RegProductJoin[]> = {};
+  type RegProductRow = { registration_id: string; product_id: string; naam: string | null; prijs: number | null };
+  const regProductsMap: Record<string, RegProductRow[]> = {};
   for (const rp of regProductsData ?? []) {
     if (!regProductsMap[rp.registration_id]) regProductsMap[rp.registration_id] = [];
     regProductsMap[rp.registration_id].push(rp);
   }
-  void hikeProductsData; // available if needed for other lookups
+  void hikeProductsData;
   const regAmount = (r: Reg) =>
-    (regProductsMap[r.id] ?? []).reduce((s, rp) => s + Number(rp.hike_products?.prijs ?? 0), 0);
+    (regProductsMap[r.id] ?? []).reduce((s, rp) => s + Number(rp.prijs ?? 0), 0);
 
   // Fetch group photos for walked hikes
   type HikePhoto = { slug: string; group_photo_url: string };
@@ -155,7 +155,7 @@ export default async function RoamerPage() {
                   )}
                   {(regProductsMap[r.id] ?? []).length > 0 && (
                     <p className="text-xs mt-1.5" style={{ color: '#8B5A2B' }}>
-                      {(regProductsMap[r.id] ?? []).map(rp => rp.hike_products?.naam).filter(Boolean).join(' · ')}
+                      {(regProductsMap[r.id] ?? []).map(rp => rp.naam).filter(Boolean).join(' · ')}
                     </p>
                   )}
                 </div>

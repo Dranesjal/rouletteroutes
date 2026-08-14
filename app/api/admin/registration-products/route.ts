@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { registration_id, product_id } = await req.json();
+  const { registration_id, product_id, naam, prijs } = await req.json();
   if (!registration_id || !product_id) {
     return NextResponse.json({ error: 'registration_id en product_id zijn verplicht' }, { status: 400 });
   }
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const service = getAdminClient() as any;
   const { data, error } = await service
     .from('registration_products')
-    .insert({ registration_id, product_id })
+    .insert({ registration_id, product_id, naam: naam ?? null, prijs: prijs != null ? parseFloat(prijs) : null })
     .select()
     .single();
 
