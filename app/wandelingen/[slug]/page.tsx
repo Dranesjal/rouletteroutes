@@ -110,11 +110,17 @@ export default async function HikePage({ params }: { params: Promise<{ slug: str
       </div>
 
       {/* CTA */}
-      {hike.status === 'upcoming' && hike.registrationOpen && (
-        <div className="text-center py-8 border-t" style={{ borderColor: '#EDD49A' }}>
-          <p className="text-base mb-4" style={{ color: '#5C3D1E' }}>Wil je mee roamen op de {hike.title}? Meld je dan snel aan!</p>
-          <Link href={`/aanmelden?wandeling=${hike.slug}`} className="btn-primary">Aanmelden</Link>
-        </div>
+      {hike.status === 'upcoming' && (
+        hike.registrationOpen ? (
+          <div className="text-center py-8 border-t" style={{ borderColor: '#EDD49A' }}>
+            <p className="text-base mb-4" style={{ color: '#5C3D1E' }}>Wil je mee roamen op de {hike.title}? Meld je dan snel aan!</p>
+            <Link href={`/aanmelden?wandeling=${hike.slug}`} className="btn-primary">Aanmelden</Link>
+          </div>
+        ) : (
+          <div className="text-center py-8 border-t" style={{ borderColor: '#EDD49A' }}>
+            <p className="text-sm font-semibold" style={{ color: '#8B5A2B' }}>🔒 Aanmeldingen zijn gesloten</p>
+          </div>
+        )
       )}
 
       {/* Groepsfoto — alleen voor ingelogde roamers */}
