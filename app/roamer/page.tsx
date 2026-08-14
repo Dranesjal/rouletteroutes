@@ -25,7 +25,7 @@ export default async function RoamerPage() {
     id: string; wandeling: string; registered_at: string; actief: boolean; profile_id: string | null;
     betaald: boolean; betaald_op: string | null; wilt_boekje: boolean; wil_lunchen: boolean;
     name: string; adres: string | null; postcode: string | null; woonplaats: string | null;
-    telefoon: string | null; dietary: string | null;
+    phone: string | null; dietary: string | null;
   };
 
   // Fetch by profile_id AND by email (catches pre-account registrations)
@@ -201,10 +201,10 @@ export default async function RoamerPage() {
                         </p>
                       </div>
                     )}
-                    {r.telefoon && (
+                    {r.phone && (
                       <div>
                         <p className="font-bold uppercase tracking-wide mb-0.5" style={{ color: '#8B5A2B' }}>Telefoon</p>
-                        <p style={{ color: '#2C1A0E' }}>{r.telefoon}</p>
+                        <p style={{ color: '#2C1A0E' }}>{r.phone}</p>
                       </div>
                     )}
                     {r.dietary && (
