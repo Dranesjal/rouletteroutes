@@ -30,7 +30,10 @@ interface Registration {
 interface Roamer {
   id: string;
   name: string;
+  email?: string;
   role: string;
+  dietary?: string;
+  active: boolean;
   created_at: string;
 }
 
@@ -142,6 +145,10 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   // Optimistic registration state
   const [regs, setRegs] = useState<Registration[]>(registrations);
 
+  // Roamers state
+  const [roamersList, setRoamersList] = useState<Roamer[]>(roamers);
+  const [selectedRoamer, setSelectedRoamer] = useState<string | null>(null);
+
   // Walk records state
   const [walkRecords, setWalkRecords] = useState<WalkRecord[]>(initialWalkRecords);
   const [walkForm, setWalkForm] = useState({ user_id: '', walk_slug: '', title: '', date: '', distance_km: '', notes: '' });
@@ -213,12 +220,35 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
 
   // ── Rollen ──
   const setRole = async (id: string, role: string) => {
+    setRoamersList(prev => prev.map(r => r.id === id ? { ...r, role } : r));
     await fetch('/api/admin/set-role', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, role }),
     });
-    router.refresh();
+  };
+
+  // ── Roamer actief toggle ──
+  const toggleRoamerActive = async (id: string, currentActive: boolean) => {
+    const active = !currentActive;
+    setRoamersList(prev => prev.map(r => r.id === id ? { ...r, active } : r));
+    await fetch('/api/admin/toggle-roamer-active', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, active }),
+    });
+  };
+
+  // ── Roamer verwijderen (super_admin only) ──
+  const deleteRoamer = async (id: string, name: string) => {
+    if (!confirm(`Roamer "${name || id}" definitief verwijderen? Dit verwijdert ook het account.`)) return;
+    setRoamersList(prev => prev.filter(r => r.id !== id));
+    setSelectedRoamer(null);
+    await fetch('/api/admin/delete-roamer', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
   };
 
   // ── Producten ──
@@ -383,16 +413,21 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
             <RoleBadge role={adminRole} />
           </div>
         </div>
-        <button onClick={handleLogout} className="text-sm font-semibold px-4 py-2 rounded-lg" style={{ background: '#F5E4C0', color: '#5C3D1E' }}>
-          Uitloggen
-        </button>
+        <div className="flex gap-2">
+          <a href="/roamer" className="text-sm font-semibold px-4 py-2 rounded-lg" style={{ background: '#F5E4C0', color: '#5C3D1E' }}>
+            Mijn profiel
+          </a>
+          <button onClick={handleLogout} className="text-sm font-semibold px-4 py-2 rounded-lg" style={{ background: '#2C1A0E', color: 'white' }}>
+            Uitloggen
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-8 border-b overflow-x-auto" style={{ borderColor: '#EDD49A' }}>
         {([
           ['wandelingen', `Wandelingen (${uniqueWandelingen.length})`],
-          ['roamers', `Roamers (${roamers.length})`],
+          ['roamers', `Roamers (${roamersList.length})`],
           ['looprecords', `Looprecords (${walkRecords.length})`],
           ['hikes', `Hikes (${allHikes.length})`],
         ] as [Tab, string][]).map(([t, label]) => (
@@ -824,61 +859,135 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
 
       {/* ── Roamers ── */}
       {tab === 'roamers' && (
-        <div className="overflow-x-auto rounded-xl border" style={{ borderColor: '#EDD49A' }}>
-          <table className="w-full text-sm">
-            <thead style={{ background: '#F5E4C0' }}>
-              <tr>
-                {['Naam', 'Rol', 'Aangemeld op', 'Acties'].map(h => (
-                  <th key={h} className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wide" style={{ color: '#8B5A2B' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {roamers.map((r, i) => (
-                <tr key={r.id} style={{ background: i % 2 === 0 ? '#FAF3E3' : 'white', color: '#2C1A0E' }}>
-                  <td className="px-4 py-3 font-semibold">{r.name || '(geen naam)'}</td>
-                  <td className="px-4 py-3"><RoleBadge role={r.role} /></td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#8B5A2B' }}>
-                    {new Date(r.created_at).toLocaleDateString('nl-NL')}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2 flex-wrap">
-                      {r.role === 'roamer' && (
-                        <button onClick={() => setRole(r.id, 'admin')}
-                          className="text-xs px-3 py-1 rounded-lg font-semibold"
-                          style={{ background: '#FFF8EC', color: '#7A4B00', border: '1px solid #F5D78A' }}>
-                          Maak admin
-                        </button>
+        <div className="space-y-2">
+          {roamersList.length === 0 && (
+            <p className="text-center py-12 text-sm" style={{ color: '#8B5A2B' }}>Geen roamers.</p>
+          )}
+          {roamersList.map(r => {
+            const isOpen = selectedRoamer === r.id;
+            const roamerRegs = regs.filter(reg => reg.profile_id === r.id);
+            const roamerWalks = walkRecords.filter(wr => wr.user_id === r.id);
+            const emailDisplay = r.email || roamerRegs[0]?.email;
+            const isInactive = r.active === false;
+
+            return (
+              <div key={r.id} className="card overflow-hidden" style={{ opacity: isInactive ? 0.7 : 1 }}>
+                {/* Header — klikbaar */}
+                <button
+                  onClick={() => setSelectedRoamer(isOpen ? null : r.id)}
+                  className="w-full px-4 py-3 flex items-center justify-between gap-4 text-left"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm" style={{ color: '#2C1A0E' }}>{r.name || '(geen naam)'}</span>
+                      <RoleBadge role={r.role} />
+                      {isInactive && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: '#FEE2E2', color: '#991B1B' }}>Inactief</span>
                       )}
-                      {r.role === 'admin' && (
-                        <>
-                          <button onClick={() => setRole(r.id, 'roamer')}
+                    </div>
+                    {emailDisplay && (
+                      <p className="text-xs mt-0.5 truncate" style={{ color: '#8B5A2B' }}>{emailDisplay}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0 text-xs" style={{ color: '#8B5A2B' }}>
+                    <span>{roamerRegs.length} aanm.</span>
+                    <span>{roamerWalks.length} walks</span>
+                    <span style={{ fontSize: '0.65rem' }}>{isOpen ? '▲' : '▼'}</span>
+                  </div>
+                </button>
+
+                {/* Uitgebreide details */}
+                {isOpen && (
+                  <div className="px-4 pb-4 space-y-4 pt-3" style={{ borderTop: '1px solid #EDD49A' }}>
+                    {/* Info */}
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="label-sm">Aangemeld op</p>
+                        <p style={{ color: '#2C1A0E' }}>{new Date(r.created_at).toLocaleDateString('nl-NL')}</p>
+                      </div>
+                      {r.dietary && (
+                        <div>
+                          <p className="label-sm">Dieetwensen</p>
+                          <p style={{ color: '#2C1A0E' }}>{r.dietary}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Aanmeldingen */}
+                    {roamerRegs.length > 0 && (
+                      <div>
+                        <p className="label-sm mb-2">Aanmeldingen</p>
+                        <div className="space-y-1">
+                          {roamerRegs.map(reg => (
+                            <div key={reg.id} className="flex items-center justify-between text-xs px-3 py-2 rounded-lg" style={{ background: '#FAF3E3' }}>
+                              <span className="font-semibold" style={{ color: '#2C1A0E' }}>{reg.wandeling}</span>
+                              <div className="flex gap-2">
+                                <span style={{ color: reg.betaald ? '#065F46' : '#92400E' }}>{reg.betaald ? '✓ Betaald' : 'Open'}</span>
+                                <span style={{ color: reg.actief ? '#4A7C59' : '#991B1B' }}>{reg.actief ? 'Actief' : 'Inactief'}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Rol beheer */}
+                    <div>
+                      <p className="label-sm mb-2">Rol</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {r.role === 'roamer' && (
+                          <button onClick={() => setRole(r.id, 'admin')}
+                            className="text-xs px-3 py-1 rounded-lg font-semibold"
+                            style={{ background: '#FFF8EC', color: '#7A4B00', border: '1px solid #F5D78A' }}>
+                            Maak admin
+                          </button>
+                        )}
+                        {r.role === 'admin' && (
+                          <>
+                            <button onClick={() => setRole(r.id, 'roamer')}
+                              className="text-xs px-3 py-1 rounded-lg font-semibold"
+                              style={{ background: '#FEE2E2', color: '#991B1B' }}>
+                              Verwijder admin
+                            </button>
+                            {isSuperAdmin && (
+                              <button onClick={() => setRole(r.id, 'super_admin')}
+                                className="text-xs px-3 py-1 rounded-lg font-semibold"
+                                style={{ background: '#EDE9FE', color: '#5B21B6' }}>
+                                Maak super admin
+                              </button>
+                            )}
+                          </>
+                        )}
+                        {r.role === 'super_admin' && isSuperAdmin && (
+                          <button onClick={() => setRole(r.id, 'admin')}
                             className="text-xs px-3 py-1 rounded-lg font-semibold"
                             style={{ background: '#FEE2E2', color: '#991B1B' }}>
-                            Verwijder admin
+                            Verlaag naar admin
                           </button>
-                          {isSuperAdmin && (
-                            <button onClick={() => setRole(r.id, 'super_admin')}
-                              className="text-xs px-3 py-1 rounded-lg font-semibold"
-                              style={{ background: '#EDE9FE', color: '#5B21B6' }}>
-                              Maak super admin
-                            </button>
-                          )}
-                        </>
-                      )}
-                      {r.role === 'super_admin' && isSuperAdmin && (
-                        <button onClick={() => setRole(r.id, 'admin')}
-                          className="text-xs px-3 py-1 rounded-lg font-semibold"
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Acties */}
+                    <div className="flex gap-2 pt-2" style={{ borderTop: '1px solid #EDD49A' }}>
+                      <button onClick={() => toggleRoamerActive(r.id, r.active ?? true)}
+                        className="text-xs px-3 py-1.5 rounded-lg font-semibold"
+                        style={{ background: isInactive ? '#D1FAE5' : '#FEF3C7', color: isInactive ? '#065F46' : '#92400E' }}>
+                        {isInactive ? 'Activeren' : 'Inactief zetten'}
+                      </button>
+                      {isSuperAdmin && (
+                        <button onClick={() => deleteRoamer(r.id, r.name)}
+                          className="text-xs px-3 py-1.5 rounded-lg font-semibold"
                           style={{ background: '#FEE2E2', color: '#991B1B' }}>
-                          Verlaag naar admin
+                          Verwijderen
                         </button>
                       )}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
