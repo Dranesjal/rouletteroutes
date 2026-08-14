@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,8 @@ export async function POST(req: NextRequest) {
   const { slug } = await req.json();
   if (!slug) return NextResponse.json({ error: 'slug vereist' }, { status: 400 });
 
-  const service = await createServiceClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const service = getAdminClient() as any;
 
   const { data: hike } = await service.from('hikes').select('slug, title, distance_km, date').eq('slug', slug).single();
   if (!hike) return NextResponse.json({ error: 'Wandeling niet gevonden' }, { status: 404 });
@@ -44,7 +46,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Maak walk_records aan, upsert om duplicaten te skippen
-  const records = registrations.map(r => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const records = registrations.map((r: any) => ({
     user_id: r.profile_id as string,
     type: 'rrr' as const,
     walk_slug: hike.slug,

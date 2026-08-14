@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAdminClient } from '@/lib/supabase/admin';
 import AdminClient from './AdminClient';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,8 @@ export default async function AdminPage() {
     );
   }
 
-  const service = await createServiceClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const service = getAdminClient() as any;
   const [{ data: registrations }, { data: profiles }, { data: kosten }, { data: walkRecords }, { data: hikesData }] = await Promise.all([
     service.from('registrations').select('*').order('registered_at', { ascending: false }),
     service.from('profiles').select('*').order('created_at', { ascending: false }),
