@@ -28,16 +28,14 @@ export default async function RoamerPage() {
     telefoon: string | null; dietary: string | null;
   };
 
-  const regFields = 'id, wandeling, registered_at, actief, profile_id, betaald, betaald_op, wilt_boekje, wil_lunchen, name, adres, postcode, woonplaats, telefoon, dietary';
-
   // Fetch by profile_id AND by email (catches pre-account registrations)
   const [{ data: byId }, { data: byEmail }] = await Promise.all([
     service.from('registrations')
-      .select(regFields)
+      .select('*')
       .eq('profile_id', user.id)
       .order('registered_at', { ascending: false }) as Promise<{ data: Reg[] | null }>,
     service.from('registrations')
-      .select(regFields)
+      .select('*')
       .eq('email', user.email ?? '')
       .is('profile_id', null)
       .order('registered_at', { ascending: false }) as Promise<{ data: Reg[] | null }>,
