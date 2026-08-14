@@ -27,6 +27,11 @@ module.exports = {
         'document-title': ['error', {}],
         'html-has-lang': ['error', {}],
         'image-alt': ['warn', {}],
+        // SSR/serverless verwachte beperkingen — geen errors
+        'bf-cache': ['warn', {}],
+        'document-latency-insight': ['warn', {}],
+        'image-delivery-insight': ['warn', {}],
+        'legacy-javascript-insight': ['warn', {}],
       },
     },
     upload: {
