@@ -416,9 +416,10 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
             const guests = wandRegs.filter(r => r.profile_id === null);
             const betaaldCount = wandRegs.filter(r => r.betaald).length;
             const slugProducts = hikeProducts.filter(p => p.wandeling_slug === slug);
+            const productPriceMap = Object.fromEntries(hikeProducts.map(p => [p.id, p.prijs]));
             const regTotal = (regId: string) => regProducts
               .filter(rp => rp.registration_id === regId)
-              .reduce((s, rp) => s + Number(rp.prijs ?? 0), 0);
+              .reduce((s, rp) => s + Number(rp.prijs ?? productPriceMap[rp.product_id] ?? 0), 0);
             const totalVerwacht = wandRegs.reduce((s, r) => s + regTotal(r.id), 0);
             const totalOntvangen = wandRegs.filter(r => r.betaald).reduce((s, r) => s + regTotal(r.id), 0);
             const result = completeResults[slug];
