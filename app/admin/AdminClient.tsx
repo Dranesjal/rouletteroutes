@@ -539,37 +539,41 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                     <tr key={p.id} style={{ background: i % 2 === 0 ? 'white' : '#FAF3E3', color: '#2C1A0E' }}>
                                       <td className="px-4 py-2 font-semibold">{p.naam}</td>
                                       <td className="px-4 py-2 text-right font-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>{euro(Number(p.prijs))}</td>
-                                      <td className="px-4 py-2">
-                                        <button onClick={() => deleteHikeProduct(p.id)} className="text-xs px-2 py-0.5 rounded" style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
-                                      </td>
+                                      {isSuperAdmin && (
+                                        <td className="px-4 py-2">
+                                          <button onClick={() => deleteHikeProduct(p.id)} className="text-xs px-2 py-0.5 rounded" style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                                        </td>
+                                      )}
                                     </tr>
                                   ))}
                                 </tbody>
                               </table>
                             </div>
                           )}
-                          <div className="flex gap-2">
-                            <input
-                              className="field text-sm py-1.5 flex-1"
-                              placeholder="Naam (bijv. Parkentree)"
-                              value={pForm.naam}
-                              onChange={e => setProductForm(prev => ({ ...prev, [slug]: { ...pForm, naam: e.target.value } }))}
-                            />
-                            <input
-                              className="field text-sm py-1.5 w-24"
-                              placeholder="€ 0,00"
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={pForm.prijs}
-                              onChange={e => setProductForm(prev => ({ ...prev, [slug]: { ...pForm, prijs: e.target.value } }))}
-                            />
-                            <button onClick={() => addHikeProduct(slug)}
-                              className="text-sm font-semibold px-3 py-1.5 rounded-lg"
-                              style={{ background: '#C4622D', color: 'white' }}>
-                              + Toevoegen
-                            </button>
-                          </div>
+                          {isSuperAdmin && (
+                            <div className="flex gap-2">
+                              <input
+                                className="field text-sm py-1.5 flex-1"
+                                placeholder="Naam (bijv. Parkentree)"
+                                value={pForm.naam}
+                                onChange={e => setProductForm(prev => ({ ...prev, [slug]: { ...pForm, naam: e.target.value } }))}
+                              />
+                              <input
+                                className="field text-sm py-1.5 w-24"
+                                placeholder="€ 0,00"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={pForm.prijs}
+                                onChange={e => setProductForm(prev => ({ ...prev, [slug]: { ...pForm, prijs: e.target.value } }))}
+                              />
+                              <button onClick={() => addHikeProduct(slug)}
+                                className="text-sm font-semibold px-3 py-1.5 rounded-lg"
+                                style={{ background: '#C4622D', color: 'white' }}>
+                                + Toevoegen
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -906,9 +910,11 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                           <td className="px-3 py-2">{r.distance_km ? `${r.distance_km} km` : '-'}</td>
                           <td className="px-3 py-2 text-xs" style={{ color: '#8B5A2B' }}>{r.notes || '-'}</td>
                           <td className="px-3 py-2">
-                            <button onClick={() => deleteWalkRecord(r.id)}
-                              className="text-xs px-2 py-1 rounded font-semibold"
-                              style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                            {isSuperAdmin && (
+                              <button onClick={() => deleteWalkRecord(r.id)}
+                                className="text-xs px-2 py-1 rounded font-semibold"
+                                style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                            )}
                           </td>
                         </tr>
                       );
@@ -995,42 +1001,42 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                       </div>
                     )}
 
-                    {/* Rol beheer */}
-                    <div>
-                      <p className="label-sm mb-2">Rol</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {r.role === 'roamer' && (
-                          <button onClick={() => setRole(r.id, 'admin')}
-                            className="text-xs px-3 py-1 rounded-lg font-semibold"
-                            style={{ background: '#FFF8EC', color: '#7A4B00', border: '1px solid #F5D78A' }}>
-                            Maak admin
-                          </button>
-                        )}
-                        {r.role === 'admin' && (
-                          <>
-                            <button onClick={() => setRole(r.id, 'roamer')}
+                    {/* Rol beheer — alleen super_admin */}
+                    {isSuperAdmin && (
+                      <div>
+                        <p className="label-sm mb-2">Rol</p>
+                        <div className="flex gap-2 flex-wrap">
+                          {r.role === 'roamer' && (
+                            <button onClick={() => setRole(r.id, 'admin')}
                               className="text-xs px-3 py-1 rounded-lg font-semibold"
-                              style={{ background: '#FEE2E2', color: '#991B1B' }}>
-                              Verwijder admin
+                              style={{ background: '#FFF8EC', color: '#7A4B00', border: '1px solid #F5D78A' }}>
+                              Maak admin
                             </button>
-                            {isSuperAdmin && (
+                          )}
+                          {r.role === 'admin' && (
+                            <>
+                              <button onClick={() => setRole(r.id, 'roamer')}
+                                className="text-xs px-3 py-1 rounded-lg font-semibold"
+                                style={{ background: '#FEE2E2', color: '#991B1B' }}>
+                                Verwijder admin
+                              </button>
                               <button onClick={() => setRole(r.id, 'super_admin')}
                                 className="text-xs px-3 py-1 rounded-lg font-semibold"
                                 style={{ background: '#EDE9FE', color: '#5B21B6' }}>
                                 Maak super admin
                               </button>
-                            )}
-                          </>
-                        )}
-                        {r.role === 'super_admin' && isSuperAdmin && (
-                          <button onClick={() => setRole(r.id, 'admin')}
-                            className="text-xs px-3 py-1 rounded-lg font-semibold"
-                            style={{ background: '#FEE2E2', color: '#991B1B' }}>
-                            Verlaag naar admin
-                          </button>
-                        )}
+                            </>
+                          )}
+                          {r.role === 'super_admin' && (
+                            <button onClick={() => setRole(r.id, 'admin')}
+                              className="text-xs px-3 py-1 rounded-lg font-semibold"
+                              style={{ background: '#FEE2E2', color: '#991B1B' }}>
+                              Verlaag naar admin
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Acties */}
                     <div className="flex gap-2 pt-2" style={{ borderTop: '1px solid #EDD49A' }}>
@@ -1233,7 +1239,9 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
                       <button onClick={() => editHike(h)} className="text-xs px-3 py-1.5 rounded-lg font-semibold" style={{ background: '#F5E4C0', color: '#5C3D1E' }}>Bewerken</button>
-                      <button onClick={() => deleteHike(h.slug)} className="text-xs px-3 py-1.5 rounded-lg font-semibold" style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                      {isSuperAdmin && (
+                        <button onClick={() => deleteHike(h.slug)} className="text-xs px-3 py-1.5 rounded-lg font-semibold" style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                      )}
                     </div>
                   </div>
                 ))}
