@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.rouletteroutes.nl'),
   title: "Roulette Routes Roamers | Dwalen met bedoeling",
   description: "Samen wandelen op willekeurige routes. Geen vast plan, wel goede gesprekken.",
-  ...(isStaging && { robots: { index: false, follow: false } }),
+  robots: { index: false, follow: false },
   openGraph: {
     title: "Roulette Routes Roamers",
     description: "Dwalen met bedoeling. Samen wandelen, verhalen delen.",
