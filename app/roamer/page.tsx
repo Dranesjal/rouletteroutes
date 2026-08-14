@@ -58,7 +58,7 @@ export default async function RoamerPage() {
 
   const regSlugs = [...new Set(registrations.map(r => r.wandeling))];
 
-  const [{ data: walkRecords }, { data: regProductsData }, { data: hikeDetails }] = await Promise.all([
+  const [{ data: walkRecords }, { data: regProductsData }, { data: hikeDetails }, { data: hikeProductsData }] = await Promise.all([
     supabase
       .from('walk_records')
       .select('walk_slug, title, date, distance_km')
@@ -68,6 +68,7 @@ export default async function RoamerPage() {
     regSlugs.length > 0
       ? service.from('hikes').select('slug, title, date, meeting_point, meeting_time, start_time').in('slug', regSlugs) as Promise<{ data: { slug: string; title: string; date: string; meeting_point: string; meeting_time: string; start_time: string }[] | null }>
       : Promise.resolve({ data: [] }),
+    service.from('hike_products').select('id, naam, prijs') as Promise<{ data: { id: string; naam: string; prijs: number }[] | null }>,
   ]);
 
   type RegProductRow = { registration_id: string; product_id: string; naam: string | null; prijs: number | null };
@@ -79,8 +80,21 @@ export default async function RoamerPage() {
   const hikeMap: Record<string, { title: string; date: string; meeting_point: string; meeting_time: string; start_time: string }> =
     Object.fromEntries((hikeDetails ?? []).map(h => [h.slug, h]));
 
+  // Fallback lookup for pre-migration rows that have NULL snapshot
+  const productLookup: Record<string, { naam: string; prijs: number }> = Object.fromEntries(
+    (hikeProductsData ?? []).map(p => [p.id, { naam: p.naam, prijs: p.prijs }])
+  );
+
+  const resolvedProducts = (regId: string) =>
+    (regProductsMap[regId] ?? [])
+      .map(rp => ({
+        naam: rp.naam ?? productLookup[rp.product_id]?.naam ?? null,
+        prijs: rp.prijs ?? productLookup[rp.product_id]?.prijs ?? null,
+      }))
+      .filter((rp): rp is { naam: string; prijs: number } => rp.naam !== null && rp.prijs !== null);
+
   const regAmount = (r: Reg) =>
-    (regProductsMap[r.id] ?? []).reduce((s, rp) => s + Number(rp.prijs ?? 0), 0);
+    resolvedProducts(r.id).reduce((s, rp) => s + Number(rp.prijs), 0);
 
   // Fetch group photos for walked hikes
   type HikePhoto = { slug: string; group_photo_url: string };
@@ -135,9 +149,9 @@ export default async function RoamerPage() {
         {registrations?.length ? (
           <div className="space-y-3">
             {registrations.map((r) => {
-              const amount = regAmount(r);
+              const products = resolvedProducts(r.id);
+              const amount = products.reduce((s, rp) => s + Number(rp.prijs), 0);
               const hike = hikeMap[r.wandeling];
-              const products = regProductsMap[r.id] ?? [];
               return (
                 <div key={r.id} className="card p-4 space-y-3">
                   {/* Header */}
