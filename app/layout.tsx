@@ -16,10 +16,13 @@ const lato = Lato({
   weight: ["400", "700"],
 });
 
+const isStaging = process.env.NEXT_PUBLIC_APP_ENV === 'staging';
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.rouletteroutes.nl'),
   title: "Roulette Routes Roamers | Dwalen met bedoeling",
   description: "Samen wandelen op willekeurige routes. Geen vast plan, wel goede gesprekken.",
+  ...(isStaging && { robots: { index: false, follow: false } }),
   openGraph: {
     title: "Roulette Routes Roamers",
     description: "Dwalen met bedoeling. Samen wandelen, verhalen delen.",
@@ -27,8 +30,6 @@ export const metadata: Metadata = {
     images: [{ url: '/logo.png', width: 187, height: 189, alt: 'Roulette Routes Roamers' }],
   },
 };
-
-const isStaging = process.env.NEXT_PUBLIC_APP_ENV === 'staging';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
