@@ -30,12 +30,13 @@ export default async function AdminPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const service = getAdminClient() as any;
-  const [{ data: registrations }, { data: profiles }, { data: kosten }, { data: walkRecords }, { data: hikesData }] = await Promise.all([
+  const [{ data: registrations }, { data: profiles }, { data: walkRecords }, { data: hikesData }, { data: hikeProducts }, { data: regProducts }] = await Promise.all([
     service.from('registrations').select('*').order('registered_at', { ascending: false }),
     service.from('profiles').select('*').order('created_at', { ascending: false }),
-    service.from('wandeling_kosten').select('*').order('created_at'),
     service.from('walk_records').select('*').order('date', { ascending: false }),
     service.from('hikes').select('*').order('date', { ascending: false }),
+    service.from('hike_products').select('*').order('created_at'),
+    service.from('registration_products').select('*'),
   ]);
 
   const hikes = (hikesData ?? []).map((h: Record<string, unknown>) => ({
@@ -53,9 +54,10 @@ export default async function AdminPage() {
       registrations={registrations ?? []}
       roamers={profiles ?? []}
       hikes={hikes}
-      kosten={kosten ?? []}
       walkRecords={walkRecords ?? []}
       allHikes={hikesData ?? []}
+      hikeProducts={hikeProducts ?? []}
+      regProducts={regProducts ?? []}
     />
   );
 }

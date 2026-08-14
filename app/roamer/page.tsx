@@ -21,16 +21,16 @@ export default async function RoamerPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const service = getAdminClient() as any;
 
-  type Reg = { id: string; wandeling: string; registered_at: string; actief: boolean; profile_id: string | null };
+  type Reg = { id: string; wandeling: string; registered_at: string; actief: boolean; profile_id: string | null; betaald: boolean; betaald_op: string | null; wilt_boekje: boolean };
 
   // Fetch by profile_id AND by email (catches pre-account registrations)
   const [{ data: byId }, { data: byEmail }] = await Promise.all([
     service.from('registrations')
-      .select('id, wandeling, registered_at, actief, profile_id')
+      .select('id, wandeling, registered_at, actief, profile_id, betaald, betaald_op, wilt_boekje')
       .eq('profile_id', user.id)
       .order('registered_at', { ascending: false }) as Promise<{ data: Reg[] | null }>,
     service.from('registrations')
-      .select('id, wandeling, registered_at, actief, profile_id')
+      .select('id, wandeling, registered_at, actief, profile_id, betaald, betaald_op, wilt_boekje')
       .eq('email', user.email ?? '')
       .is('profile_id', null)
       .order('registered_at', { ascending: false }) as Promise<{ data: Reg[] | null }>,
@@ -51,11 +51,25 @@ export default async function RoamerPage() {
     ...(byEmail ?? []).filter(r => !seen.has(r.id)),
   ].sort((a, b) => new Date(b.registered_at).getTime() - new Date(a.registered_at).getTime());
 
-  const { data: walkRecords } = await supabase
-    .from('walk_records')
-    .select('walk_slug, title, date, distance_km')
-    .eq('user_id', user.id)
-    .order('date', { ascending: false });
+  const [{ data: walkRecords }, { data: hikeProductsData }, { data: regProductsData }] = await Promise.all([
+    supabase
+      .from('walk_records')
+      .select('walk_slug, title, date, distance_km')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false }),
+    service.from('hike_products').select('*') as Promise<{ data: { id: string; wandeling_slug: string; naam: string; prijs: number }[] | null }>,
+    service.from('registration_products').select('registration_id, product_id, hike_products(naam, prijs)') as Promise<{ data: { registration_id: string; product_id: string; hike_products: { naam: string; prijs: number } }[] | null }>,
+  ]);
+
+  type RegProductJoin = { registration_id: string; product_id: string; hike_products: { naam: string; prijs: number } };
+  const regProductsMap: Record<string, RegProductJoin[]> = {};
+  for (const rp of regProductsData ?? []) {
+    if (!regProductsMap[rp.registration_id]) regProductsMap[rp.registration_id] = [];
+    regProductsMap[rp.registration_id].push(rp);
+  }
+  void hikeProductsData; // available if needed for other lookups
+  const regAmount = (r: Reg) =>
+    (regProductsMap[r.id] ?? []).reduce((s, rp) => s + Number(rp.hike_products?.prijs ?? 0), 0);
 
   // Fetch group photos for walked hikes
   type HikePhoto = { slug: string; group_photo_url: string };
@@ -109,21 +123,44 @@ export default async function RoamerPage() {
         <h2 className="font-display font-bold text-xl mb-4" style={{ color: '#2C1A0E' }}>Aanmeldingen</h2>
         {registrations?.length ? (
           <div className="space-y-3">
-            {registrations.map((r) => (
-              <div key={r.id} className="card p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-sm" style={{ color: '#2C1A0E' }}>{r.wandeling}</p>
-                  {r.registered_at && (
-                    <p className="text-xs mt-0.5" style={{ color: '#8B5A2B' }}>
-                      Aangemeld op {new Date(r.registered_at).toLocaleDateString('nl-NL')}
+            {registrations.map((r) => {
+              const amount = regAmount(r);
+              return (
+                <div key={r.id} className="card p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm" style={{ color: '#2C1A0E' }}>{r.wandeling}</p>
+                      {r.registered_at && (
+                        <p className="text-xs mt-0.5" style={{ color: '#8B5A2B' }}>
+                          Aangemeld op {new Date(r.registered_at).toLocaleDateString('nl-NL')}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${r.actief ? 'badge-upcoming' : 'badge-past'}`}>
+                        {r.actief ? 'Actief' : 'Inactief'}
+                      </span>
+                      {amount > 0 && (
+                        <span className="text-xs font-semibold px-2 py-1 rounded-full"
+                          style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
+                          {r.betaald ? `✓ Betaald · € ${amount.toFixed(2).replace('.', ',')}` : `Open · € ${amount.toFixed(2).replace('.', ',')}`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {r.betaald && r.betaald_op && (
+                    <p className="text-xs mt-2" style={{ color: '#4A7C59' }}>
+                      Betaald op {new Date(r.betaald_op).toLocaleDateString('nl-NL')}
+                    </p>
+                  )}
+                  {(regProductsMap[r.id] ?? []).length > 0 && (
+                    <p className="text-xs mt-1.5" style={{ color: '#8B5A2B' }}>
+                      {(regProductsMap[r.id] ?? []).map(rp => rp.hike_products?.naam).filter(Boolean).join(' · ')}
                     </p>
                   )}
                 </div>
-                <span className={`text-xs font-bold px-2 py-1 rounded-full ${r.actief ? 'badge-upcoming' : 'badge-past'}`}>
-                  {r.actief ? 'Actief' : 'Inactief'}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="card p-6 text-center" style={{ color: '#8B5A2B' }}>

@@ -28,6 +28,7 @@ export interface Hike {
   registrationForm: 'basic' | 'full';
   routeImageUrl?: string;
   groupPhotoUrl?: string;
+  boekjePrijs: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,6 +61,7 @@ function dbToHike(row: any): Hike {
     registrationForm: (row.registration_form === 'full' ? 'full' : 'basic') as 'basic' | 'full',
     routeImageUrl: row.route_image_url || undefined,
     groupPhotoUrl: row.group_photo_url || undefined,
+    boekjePrijs: row.boekje_prijs ?? 0,
   };
 }
 

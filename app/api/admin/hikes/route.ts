@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
     registration_form: body.registration_form === 'full' ? 'full' : 'basic',
     route_image_url: body.route_image_url?.trim() || '',
     group_photo_url: body.group_photo_url?.trim() || '',
+    boekje_prijs: body.boekje_prijs ? parseFloat(body.boekje_prijs) : 0,
   }, { onConflict: 'slug' }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -42,11 +42,17 @@ interface HikeSummary {
   status: 'upcoming' | 'completed' | 'cancelled';
 }
 
-interface Kost {
+interface HikeProduct {
   id: string;
   wandeling_slug: string;
-  omschrijving: string;
-  bedrag: number;
+  naam: string;
+  prijs: number;
+}
+
+interface RegProduct {
+  id: string;
+  registration_id: string;
+  product_id: string;
 }
 
 interface WalkRecord {
@@ -86,6 +92,7 @@ interface DbHike {
   registration_form: 'basic' | 'full';
   route_image_url: string;
   group_photo_url: string;
+  boekje_prijs: number;
 }
 
 const EMPTY_HIKE: DbHike = {
@@ -94,7 +101,7 @@ const EMPTY_HIKE: DbHike = {
   meeting_point: '', meeting_time: '', start_time: '', registration_open: false,
   has_lunch: false, lunch_venue: '', lunch_url: '', difficulty: 'easy', terrain: '', wandelboekje: false,
   registration_note: '', registration_success_note: '', registration_form: 'basic' as const,
-  route_image_url: '', group_photo_url: '',
+  route_image_url: '', group_photo_url: '', boekje_prijs: 0,
 };
 
 interface Props {
@@ -103,9 +110,10 @@ interface Props {
   registrations: Registration[];
   roamers: Roamer[];
   hikes: HikeSummary[];
-  kosten: Kost[];
   walkRecords: WalkRecord[];
   allHikes: DbHike[];
+  hikeProducts: HikeProduct[];
+  regProducts: RegProduct[];
 }
 
 type Tab = 'wandelingen' | 'roamers' | 'looprecords' | 'hikes';
@@ -123,7 +131,7 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
-export default function AdminClient({ adminName, adminRole, registrations, roamers, hikes, kosten: initialKosten, walkRecords: initialWalkRecords, allHikes: initialAllHikes }: Props) {
+export default function AdminClient({ adminName, adminRole, registrations, roamers, hikes, walkRecords: initialWalkRecords, allHikes: initialAllHikes, hikeProducts: initialHikeProducts, regProducts: initialRegProducts }: Props) {
   const router = useRouter();
   const isSuperAdmin = adminRole === 'super_admin';
 
@@ -131,10 +139,6 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
 
   // Optimistic registration state
   const [regs, setRegs] = useState<Registration[]>(registrations);
-
-  // Kosten local state
-  const [kosten, setKosten] = useState<Kost[]>(initialKosten);
-  const [kostForm, setKostForm] = useState<Record<string, { omschrijving: string; bedrag: string }>>({});
 
   // Walk records state
   const [walkRecords, setWalkRecords] = useState<WalkRecord[]>(initialWalkRecords);
@@ -148,6 +152,12 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   const [hikeEditing, setHikeEditing] = useState<string | null>(null);
   const [hikeSaving, setHikeSaving] = useState(false);
   const [hikeError, setHikeError] = useState('');
+
+  // Producten state
+  const [hikeProducts, setHikeProducts] = useState<HikeProduct[]>(initialHikeProducts);
+  const [regProducts, setRegProducts] = useState<RegProduct[]>(initialRegProducts);
+  const [productForm, setProductForm] = useState<Record<string, { naam: string; prijs: string }>>({});
+  const [productenOpen, setProductenOpen] = useState<Record<string, boolean>>({});
 
   // Collapsible secties per wandeling
   const [lunchOpen, setLunchOpen] = useState<Record<string, boolean>>({});
@@ -209,29 +219,50 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
     router.refresh();
   };
 
-  // ── Kosten ──
-  const addKost = async (slug: string) => {
-    const form = kostForm[slug];
-    if (!form?.omschrijving?.trim() || !form?.bedrag) return;
-    const res = await fetch('/api/admin/kosten', {
+  // ── Producten ──
+  const addHikeProduct = async (slug: string) => {
+    const form = productForm[slug];
+    if (!form?.naam?.trim() || !form?.prijs) return;
+    const res = await fetch('/api/admin/hike-products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ wandeling_slug: slug, omschrijving: form.omschrijving, bedrag: form.bedrag }),
+      body: JSON.stringify({ wandeling_slug: slug, naam: form.naam.trim(), prijs: parseFloat(form.prijs) }),
     });
-    const { kost } = await res.json();
-    if (kost) {
-      setKosten(prev => [...prev, kost]);
-      setKostForm(prev => ({ ...prev, [slug]: { omschrijving: '', bedrag: '' } }));
+    const { product } = await res.json();
+    if (product) {
+      setHikeProducts(prev => [...prev, product]);
+      setProductForm(prev => ({ ...prev, [slug]: { naam: '', prijs: '' } }));
     }
   };
 
-  const deleteKost = async (id: string) => {
-    setKosten(prev => prev.filter(k => k.id !== id));
-    await fetch('/api/admin/kosten', {
+  const deleteHikeProduct = async (id: string) => {
+    setHikeProducts(prev => prev.filter(p => p.id !== id));
+    setRegProducts(prev => prev.filter(rp => rp.product_id !== id));
+    await fetch('/api/admin/hike-products', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
+  };
+
+  const toggleRegProduct = async (registrationId: string, productId: string) => {
+    const existing = regProducts.find(rp => rp.registration_id === registrationId && rp.product_id === productId);
+    if (existing) {
+      setRegProducts(prev => prev.filter(rp => rp.id !== existing.id));
+      await fetch('/api/admin/registration-products', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: existing.id }),
+      });
+    } else {
+      const res = await fetch('/api/admin/registration-products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registration_id: registrationId, product_id: productId }),
+      });
+      const { regProduct } = await res.json();
+      if (regProduct) setRegProducts(prev => [...prev, regProduct]);
+    }
   };
 
   // ── Hikes CRUD ──
@@ -381,12 +412,15 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
             const wandRegs = regs.filter(r => r.wandeling === slug && r.actief);
             const linked = wandRegs.filter(r => r.profile_id !== null);
             const guests = wandRegs.filter(r => r.profile_id === null);
-            const betaald = wandRegs.filter(r => r.betaald).length;
-            const wandKosten = kosten.filter(k => k.wandeling_slug === slug);
-            const totalPerPersoon = wandKosten.reduce((s, k) => s + Number(k.bedrag), 0);
+            const betaaldCount = wandRegs.filter(r => r.betaald).length;
+            const slugProducts = hikeProducts.filter(p => p.wandeling_slug === slug);
+            const regTotal = (regId: string) => slugProducts
+              .filter(p => regProducts.some(rp => rp.registration_id === regId && rp.product_id === p.id))
+              .reduce((s, p) => s + Number(p.prijs), 0);
+            const totalVerwacht = wandRegs.reduce((s, r) => s + regTotal(r.id), 0);
+            const totalOntvangen = wandRegs.filter(r => r.betaald).reduce((s, r) => s + regTotal(r.id), 0);
             const result = completeResults[slug];
             const isLoading = completing === slug;
-            const form = kostForm[slug] ?? { omschrijving: '', bedrag: '' };
 
             return (
               <div key={slug} className="card p-5 space-y-5">
@@ -416,7 +450,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                     { label: 'Deelnemers', value: wandRegs.length },
                     { label: 'Roamer-account', value: linked.length },
                     { label: 'Gasten', value: guests.length },
-                    { label: 'Betaald', value: `${betaald} / ${wandRegs.length}` },
+                    { label: 'Betaald', value: `${betaaldCount} / ${wandRegs.length}` },
                   ].map(s => (
                     <div key={s.label} className="rounded-lg p-3 text-center" style={{ background: '#FAF3E3' }}>
                       <p className="font-display font-black text-xl" style={{ color: '#C4622D' }}>{s.value}</p>
@@ -425,67 +459,81 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                   ))}
                 </div>
 
-                {/* Kosten */}
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#8B5A2B' }}>Kosten per persoon</p>
-                  {wandKosten.length === 0 ? (
-                    <p className="text-sm" style={{ color: '#A07850' }}>Nog geen kostenposten.</p>
-                  ) : (
-                    <table className="w-full text-sm mb-2">
-                      <tbody>
-                        {wandKosten.map(k => (
-                          <tr key={k.id}>
-                            <td className="py-1" style={{ color: '#2C1A0E' }}>{k.omschrijving}</td>
-                            <td className="py-1 text-right font-semibold" style={{ color: '#2C1A0E', fontVariantNumeric: 'tabular-nums' }}>{euro(Number(k.bedrag))}</td>
-                            <td className="py-1 pl-3">
-                              <button onClick={() => deleteKost(k.id)} className="text-xs px-2 py-0.5 rounded" style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
-                            </td>
-                          </tr>
-                        ))}
-                        <tr style={{ borderTop: '1px solid #EDD49A' }}>
-                          <td className="pt-2 font-bold text-xs uppercase" style={{ color: '#8B5A2B' }}>Totaal p.p.</td>
-                          <td className="pt-2 text-right font-black" style={{ color: '#C4622D', fontVariantNumeric: 'tabular-nums' }}>{euro(totalPerPersoon)}</td>
-                          <td />
-                        </tr>
-                      </tbody>
-                    </table>
-                  )}
-
-                  {/* Kosten toevoegen */}
-                  <div className="flex gap-2 mt-2">
-                    <input
-                      className="field text-sm py-1.5 flex-1"
-                      placeholder="Omschrijving (bijv. Parkentree)"
-                      value={form.omschrijving}
-                      onChange={e => setKostForm(prev => ({ ...prev, [slug]: { ...form, omschrijving: e.target.value } }))}
-                    />
-                    <input
-                      className="field text-sm py-1.5 w-24"
-                      placeholder="€ 0,00"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={form.bedrag}
-                      onChange={e => setKostForm(prev => ({ ...prev, [slug]: { ...form, bedrag: e.target.value } }))}
-                    />
-                    <button onClick={() => addKost(slug)}
-                      className="text-sm font-semibold px-3 py-1.5 rounded-lg"
-                      style={{ background: '#C4622D', color: 'white' }}>
-                      + Toevoegen
-                    </button>
+                {/* Betalingsstatus */}
+                {wandRegs.length > 0 && totalVerwacht > 0 && (
+                  <div className="text-sm p-3 rounded-lg" style={{ background: '#F5E4C0' }}>
+                    <span style={{ color: '#2C1A0E' }}>
+                      <strong>{betaaldCount}</strong> van <strong>{wandRegs.length}</strong> betaald ·{' '}
+                      ontvangen: <strong style={{ color: '#4A7C59' }}>{euro(totalOntvangen)}</strong> ·{' '}
+                      verwacht: <strong>{euro(totalVerwacht)}</strong>
+                    </span>
                   </div>
+                )}
 
-                  {/* Betalingsstatus */}
-                  {wandRegs.length > 0 && totalPerPersoon > 0 && (
-                    <div className="mt-3 text-sm p-3 rounded-lg" style={{ background: '#F5E4C0' }}>
-                      <span style={{ color: '#2C1A0E' }}>
-                        <strong>{betaald}</strong> van <strong>{wandRegs.length}</strong> hebben betaald ·{' '}
-                        ontvangen: <strong style={{ color: '#4A7C59' }}>{euro(betaald * totalPerPersoon)}</strong> ·{' '}
-                        verwacht: <strong>{euro(wandRegs.length * totalPerPersoon)}</strong>
-                      </span>
+                {/* Producten */}
+                {(() => {
+                  const isOpen = productenOpen[slug] ?? false;
+                  const pForm = productForm[slug] ?? { naam: '', prijs: '' };
+                  return (
+                    <div>
+                      <button
+                        onClick={() => setProductenOpen(prev => ({ ...prev, [slug]: !isOpen }))}
+                        className="flex items-center gap-2 text-sm font-bold w-full text-left"
+                        style={{ color: '#2C1A0E' }}
+                      >
+                        <span style={{ color: '#8B5A2B', fontSize: '0.7rem' }}>{isOpen ? '▼' : '▶'}</span>
+                        Producten
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full ml-1"
+                          style={{ background: slugProducts.length > 0 ? '#C4622D' : '#EDD49A', color: slugProducts.length > 0 ? 'white' : '#8B5A2B' }}>
+                          {slugProducts.length}
+                        </span>
+                      </button>
+                      {isOpen && (
+                        <div className="mt-3 space-y-2">
+                          {slugProducts.length > 0 && (
+                            <div className="rounded-xl overflow-hidden border" style={{ borderColor: '#EDD49A' }}>
+                              <table className="w-full text-sm">
+                                <tbody>
+                                  {slugProducts.map((p, i) => (
+                                    <tr key={p.id} style={{ background: i % 2 === 0 ? 'white' : '#FAF3E3', color: '#2C1A0E' }}>
+                                      <td className="px-4 py-2 font-semibold">{p.naam}</td>
+                                      <td className="px-4 py-2 text-right font-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>{euro(Number(p.prijs))}</td>
+                                      <td className="px-4 py-2">
+                                        <button onClick={() => deleteHikeProduct(p.id)} className="text-xs px-2 py-0.5 rounded" style={{ background: '#FEE2E2', color: '#991B1B' }}>✕</button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                          <div className="flex gap-2">
+                            <input
+                              className="field text-sm py-1.5 flex-1"
+                              placeholder="Naam (bijv. Parkentree)"
+                              value={pForm.naam}
+                              onChange={e => setProductForm(prev => ({ ...prev, [slug]: { ...pForm, naam: e.target.value } }))}
+                            />
+                            <input
+                              className="field text-sm py-1.5 w-24"
+                              placeholder="€ 0,00"
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={pForm.prijs}
+                              onChange={e => setProductForm(prev => ({ ...prev, [slug]: { ...pForm, prijs: e.target.value } }))}
+                            />
+                            <button onClick={() => addHikeProduct(slug)}
+                              className="text-sm font-semibold px-3 py-1.5 rounded-lg"
+                              style={{ background: '#C4622D', color: 'white' }}>
+                              + Toevoegen
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
 
                 {/* Aanmeldingen */}
                 {(() => {
@@ -515,7 +563,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                               <table className="w-full text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
                                 <thead style={{ background: '#FAF3E3' }}>
                                   <tr>
-                                    {['Naam', 'E-mail', 'Account', 'Actief', 'Betaald', 'Lunch', 'Boekje', 'Datum', ''].map(h => (
+                                    {['Naam', 'E-mail', 'Account', 'Actief', 'Betaald', 'Producten', 'Lunch', 'Boekje', 'Datum', ''].map(h => (
                                       <th key={h} className="text-left px-3 py-2 font-bold text-xs uppercase tracking-wide whitespace-nowrap" style={{ color: '#8B5A2B' }}>{h}</th>
                                     ))}
                                   </tr>
@@ -544,6 +592,30 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                           style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
                                           {r.betaald ? '✓ Betaald' : 'Open'}
                                         </button>
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        {slugProducts.length > 0 ? (
+                                          <div className="flex flex-wrap gap-1 min-w-[140px]">
+                                            {slugProducts.map(p => {
+                                              const assigned = regProducts.some(rp => rp.registration_id === r.id && rp.product_id === p.id);
+                                              return (
+                                                <button key={p.id} onClick={() => toggleRegProduct(r.id, p.id)}
+                                                  className="text-xs px-2 py-0.5 rounded-full font-semibold transition-colors"
+                                                  style={{ background: assigned ? '#C4622D' : '#F5E4C0', color: assigned ? 'white' : '#8B5A2B' }}
+                                                  title={`${p.naam}: ${euro(Number(p.prijs))}`}>
+                                                  {assigned ? '✓ ' : '+ '}{p.naam}
+                                                </button>
+                                              );
+                                            })}
+                                            {regTotal(r.id) > 0 && (
+                                              <span className="text-xs font-black ml-1" style={{ color: '#C4622D', fontVariantNumeric: 'tabular-nums' }}>
+                                                {euro(regTotal(r.id))}
+                                              </span>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <span className="text-xs" style={{ color: '#A07850' }}>—</span>
+                                        )}
                                       </td>
                                       <td className="px-3 py-2 text-center">{r.wil_lunchen ? '✅' : '-'}</td>
                                       <td className="px-3 py-2 text-center">{r.wilt_boekje ? '✅' : '-'}</td>
