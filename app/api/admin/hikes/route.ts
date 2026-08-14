@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'slug, title en date zijn verplicht' }, { status: 400 });
   }
 
-  const { data, error } = await supabase.from('hikes').upsert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const service = getAdminClient() as any;
+  const { data, error } = await service.from('hikes').upsert({
     slug: slug.trim(),
     title: title.trim(),
     subtitle: body.subtitle?.trim() || '',
@@ -73,7 +76,9 @@ export async function DELETE(req: NextRequest) {
   const { slug } = await req.json();
   if (!slug) return NextResponse.json({ error: 'slug vereist' }, { status: 400 });
 
-  const { error } = await supabase.from('hikes').delete().eq('slug', slug);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const service = getAdminClient() as any;
+  const { error } = await service.from('hikes').delete().eq('slug', slug);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
