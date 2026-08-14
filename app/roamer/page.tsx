@@ -202,21 +202,29 @@ export default async function RoamerPage() {
                   </div>
 
                   {/* Betaling */}
-                  {amount > 0 && (
-                    <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid #EDD49A' }}>
-                      <div className="text-xs" style={{ color: '#8B5A2B' }}>
-                        {products.map(rp => rp.naam).filter(Boolean).join(' · ')}
+                  {products.length > 0 && (
+                    <div className="pt-2 space-y-1.5" style={{ borderTop: '1px solid #EDD49A' }}>
+                      {products.map((rp, i) => (
+                        <div key={i} className="flex justify-between text-xs">
+                          <span style={{ color: '#5C3D1E' }}>{rp.naam}</span>
+                          <span style={{ color: '#2C1A0E', fontVariantNumeric: 'tabular-nums' }}>
+                            € {Number(rp.prijs ?? 0).toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="flex items-center justify-between pt-1.5" style={{ borderTop: '1px dashed #EDD49A' }}>
+                        <span className="text-xs font-bold" style={{ color: '#8B5A2B' }}>Totaal</span>
+                        <span className="text-xs font-semibold px-2 py-1 rounded-full"
+                          style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
+                          {r.betaald ? '✓ Betaald' : 'Open'} · € {amount.toFixed(2).replace('.', ',')}
+                        </span>
                       </div>
-                      <span className="text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0"
-                        style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
-                        {r.betaald ? '✓ Betaald' : 'Open'} · € {amount.toFixed(2).replace('.', ',')}
-                      </span>
+                      {r.betaald && r.betaald_op && (
+                        <p className="text-xs" style={{ color: '#4A7C59' }}>
+                          Betaald op {new Date(r.betaald_op).toLocaleDateString('nl-NL')}
+                        </p>
+                      )}
                     </div>
-                  )}
-                  {r.betaald && r.betaald_op && (
-                    <p className="text-xs -mt-1" style={{ color: '#4A7C59' }}>
-                      Betaald op {new Date(r.betaald_op).toLocaleDateString('nl-NL')}
-                    </p>
                   )}
                 </div>
               );
