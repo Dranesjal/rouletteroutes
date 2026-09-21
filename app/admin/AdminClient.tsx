@@ -721,17 +721,15 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                                   <input
                                                     id={dateInputId}
                                                     type="date"
-                                                    className="w-full text-xs px-1.5 py-0.5 rounded border mb-1"
+                                                    className="w-full text-xs px-1.5 py-0.5 rounded border"
                                                     style={{ borderColor: '#EDD49A', background: '#FFFBF2', color: '#2C1A0E' }}
                                                     defaultValue={currentDate}
                                                   />
-                                                  <input
-                                                    className="w-full text-xs px-1.5 py-0.5 rounded border"
-                                                    style={{ borderColor: '#EDD49A', background: '#FFFBF2', color: '#2C1A0E' }}
-                                                    placeholder="notitie..."
-                                                    defaultValue={r.betaald_notitie ?? ''}
-                                                    onBlur={e => { if (e.target.value !== (r.betaald_notitie ?? '')) savePaymentNote(r.id, e.target.value); }}
-                                                  />
+                                                  {r.betaald_notitie && (
+                                                    <p className="text-xs mt-1 truncate max-w-[140px]" style={{ color: '#8B5A2B' }} title={r.betaald_notitie}>
+                                                      {r.betaald_notitie}
+                                                    </p>
+                                                  )}
                                                 </>
                                               );
                                             })()}

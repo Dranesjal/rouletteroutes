@@ -23,7 +23,8 @@ export default async function RoamerPage() {
 
   type Reg = {
     id: string; wandeling: string; registered_at: string; actief: boolean; profile_id: string | null;
-    betaald: boolean; betaald_op: string | null; wilt_boekje: boolean; wil_lunchen: boolean;
+    betaald: boolean; betaald_op: string | null; betaald_notitie: string | null;
+    wilt_boekje: boolean; wil_lunchen: boolean;
     name: string; adres: string | null; postcode: string | null; woonplaats: string | null;
     phone: string | null; dietary: string | null;
   };
@@ -163,7 +164,7 @@ export default async function RoamerPage() {
                       )}
                     </div>
                     <span className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 ${r.actief ? 'badge-upcoming' : 'badge-past'}`}>
-                      {r.actief ? 'Actief' : 'Inactief'}
+                      {r.actief ? 'Actief' : 'Geannuleerd'}
                     </span>
                   </div>
 
@@ -233,10 +234,17 @@ export default async function RoamerPage() {
                           {r.betaald ? '✓ Betaald' : 'Open'} · € {amount.toFixed(2).replace('.', ',')}
                         </span>
                       </div>
-                      {r.betaald && r.betaald_op && (
-                        <p className="text-xs" style={{ color: '#4A7C59' }}>
-                          Betaald op {new Date(r.betaald_op).toLocaleDateString('nl-NL')}
-                        </p>
+                      {(r.betaald_op || r.betaald_notitie) && (
+                        <div className="flex items-start justify-between gap-2 text-xs pt-0.5">
+                          {r.betaald_op ? (
+                            <span style={{ color: '#4A7C59' }}>
+                              Betaald op {new Date(r.betaald_op).toLocaleDateString('nl-NL')}
+                            </span>
+                          ) : <span />}
+                          {r.betaald_notitie && (
+                            <span className="text-right" style={{ color: '#8B5A2B' }}>{r.betaald_notitie}</span>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
