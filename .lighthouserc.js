@@ -32,6 +32,7 @@ module.exports = {
         'document-latency-insight': ['warn', {}],
         'image-delivery-insight': ['warn', {}],
         'legacy-javascript-insight': ['warn', {}],
+        'render-blocking-insight': ['warn', {}],
       },
     },
     upload: {
