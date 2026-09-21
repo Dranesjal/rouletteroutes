@@ -152,7 +152,8 @@ alter table public.registrations add column if not exists betaald            boo
 alter table public.registrations add column if not exists betaald_op         timestamptz;
 alter table public.registrations add column if not exists actief             boolean default true;
 -- Extern inschrijven (bijv. externe evenementensite)
-alter table public.registrations add column if not exists extern_ingeschreven boolean default false;
+-- Geen DEFAULT: bestaande rijen blijven null (= nog niet gecheckt), alleen nieuw ingesteld via admin UI
+alter table public.registrations add column if not exists extern_ingeschreven boolean;
 
 -- ============================================================
 -- Maak jezelf admin (vervang het e-mailadres)
