@@ -24,6 +24,7 @@ interface Registration {
   betaald: boolean;
   betaald_op: string | null;
   actief: boolean;
+  extern_ingeschreven: boolean;
   registered_at: string;
 }
 
@@ -199,7 +200,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
     });
   };
 
-  // ── Actief toggle ──
+  // ── Actief toggle (annuleren / herstellen) ──
   const toggleActief = async (id: string, current: boolean) => {
     const actief = !current;
     setRegs(prev => prev.map(r => r.id === id ? { ...r, actief } : r));
@@ -207,6 +208,17 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, actief }),
+    });
+  };
+
+  // ── Extern ingeschreven toggle ──
+  const toggleExtern = async (id: string, current: boolean) => {
+    const extern_ingeschreven = !current;
+    setRegs(prev => prev.map(r => r.id === id ? { ...r, extern_ingeschreven } : r));
+    await fetch('/api/admin/toggle-extern', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, extern_ingeschreven }),
     });
   };
 
@@ -453,6 +465,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
             const linked = wandRegs.filter(r => r.profile_id !== null);
             const guests = wandRegs.filter(r => r.profile_id === null);
             const betaaldCount = wandRegs.filter(r => r.betaald).length;
+            const externCount = wandRegs.filter(r => r.extern_ingeschreven).length;
             const slugProducts = hikeProducts.filter(p => p.wandeling_slug === slug);
             const productPriceMap = Object.fromEntries(hikeProducts.map(p => [p.id, p.prijs]));
             const regTotal = (regId: string) => regProducts
@@ -486,12 +499,13 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
                   {[
                     { label: 'Deelnemers', value: wandRegs.length },
                     { label: 'Roamer-account', value: linked.length },
                     { label: 'Gasten', value: guests.length },
                     { label: 'Betaald', value: `${betaaldCount} / ${wandRegs.length}` },
+                    { label: 'Extern ingeschr.', value: `${externCount} / ${wandRegs.length}` },
                   ].map(s => (
                     <div key={s.label} className="rounded-lg p-3 text-center" style={{ background: '#FAF3E3' }}>
                       <p className="font-display font-black text-xl" style={{ color: '#C4622D' }}>{s.value}</p>
@@ -608,7 +622,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                               <table className="w-full text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
                                 <thead style={{ background: '#FAF3E3' }}>
                                   <tr>
-                                    {['Naam', 'E-mail', 'Account', 'Actief', 'Betaald', 'Producten', 'Lunch', 'Boekje', 'Datum', ''].map(h => (
+                                    {['Naam', 'E-mail', 'Account', 'Status', 'Extern', 'Betaald', 'Producten', 'Lunch', 'Boekje', 'Datum', ''].map(h => (
                                       <th key={h} className="text-left px-3 py-2 font-bold text-xs uppercase tracking-wide whitespace-nowrap" style={{ color: '#8B5A2B' }}>{h}</th>
                                     ))}
                                   </tr>
@@ -640,8 +654,15 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                           <td className="px-3 py-2">
                                             <button onClick={() => toggleActief(r.id, r.actief)}
                                               className="text-xs px-2 py-1 rounded font-semibold"
-                                              style={{ background: r.actief ? '#D1FAE5' : '#FEE2E2', color: r.actief ? '#065F46' : '#991B1B' }}>
-                                              {r.actief ? 'Actief' : 'Inactief'}
+                                              style={{ background: r.actief ? '#FEF3C7' : '#D1FAE5', color: r.actief ? '#92400E' : '#065F46' }}>
+                                              {r.actief ? 'Annuleer' : '↩ Herstel'}
+                                            </button>
+                                          </td>
+                                          <td className="px-3 py-2">
+                                            <button onClick={() => toggleExtern(r.id, r.extern_ingeschreven ?? false)}
+                                              className="text-xs px-2 py-1 rounded font-semibold whitespace-nowrap"
+                                              style={{ background: r.extern_ingeschreven ? '#D1FAE5' : '#F3F4F6', color: r.extern_ingeschreven ? '#065F46' : '#6B7280' }}>
+                                              {r.extern_ingeschreven ? '✓ Extern' : 'Extern?'}
                                             </button>
                                           </td>
                                           <td className="px-3 py-2">
@@ -690,7 +711,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                         </tr>
                                         {isExpanded && (
                                           <tr style={{ background: '#FDF6E8' }}>
-                                            <td colSpan={10} className="px-4 py-3">
+                                            <td colSpan={11} className="px-4 py-3">
                                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 text-xs">
                                                 {r.phone && (
                                                   <div>

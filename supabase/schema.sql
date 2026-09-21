@@ -148,9 +148,11 @@ create index if not exists wandeling_kosten_slug_idx
 alter table public.registrations add column if not exists wil_lunchen   boolean default false;
 alter table public.registrations add column if not exists profile_id    uuid references auth.users(id) on delete set null;
 -- Betaling & status
-alter table public.registrations add column if not exists betaald       boolean default false;
-alter table public.registrations add column if not exists betaald_op    timestamptz;
-alter table public.registrations add column if not exists actief        boolean default true;
+alter table public.registrations add column if not exists betaald            boolean default false;
+alter table public.registrations add column if not exists betaald_op         timestamptz;
+alter table public.registrations add column if not exists actief             boolean default true;
+-- Extern inschrijven (bijv. externe evenementensite)
+alter table public.registrations add column if not exists extern_ingeschreven boolean default false;
 
 -- ============================================================
 -- Maak jezelf admin (vervang het e-mailadres)
