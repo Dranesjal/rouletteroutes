@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { id, betaald } = await req.json();
+  const { id, betaald, betaald_op } = await req.json();
   if (!id || typeof betaald !== 'boolean') {
     return NextResponse.json({ error: 'id en betaald vereist' }, { status: 400 });
   }
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     .from('registrations')
     .update({
       betaald,
-      betaald_op: betaald ? new Date().toISOString() : null,
+      betaald_op: betaald ? (betaald_op ?? new Date().toISOString()) : null,
     })
     .eq('id', id);
 

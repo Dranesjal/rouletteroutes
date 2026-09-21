@@ -191,13 +191,14 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
   };
 
   // ── Betaald toggle ──
-  const toggleBetaald = async (id: string, current: boolean) => {
+  const toggleBetaald = async (id: string, current: boolean, betaald_op?: string) => {
     const betaald = !current;
-    setRegs(prev => prev.map(r => r.id === id ? { ...r, betaald, betaald_op: betaald ? new Date().toISOString() : null } : r));
+    const op = betaald ? (betaald_op ? new Date(betaald_op).toISOString() : new Date().toISOString()) : null;
+    setRegs(prev => prev.map(r => r.id === id ? { ...r, betaald, betaald_op: op } : r));
     await fetch('/api/admin/toggle-paid', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, betaald }),
+      body: JSON.stringify({ id, betaald, betaald_op: op }),
     });
   };
 
@@ -676,22 +677,41 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                               {r.extern_ingeschreven ? '✓ Extern' : 'Extern?'}
                                             </button>
                                           </td>
-                                          <td className="px-3 py-2">
-                                            <button onClick={() => toggleBetaald(r.id, r.betaald)}
-                                              className="text-xs px-2 py-1 rounded font-semibold block"
-                                              style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
-                                              {r.betaald ? '✓ Betaald' : 'Open'}
-                                            </button>
-                                            {r.betaald && r.betaald_op && (
-                                              <p className="text-xs mt-0.5 whitespace-nowrap" style={{ color: '#8B5A2B' }}>
-                                                {new Date(r.betaald_op).toLocaleDateString('nl-NL')}
-                                              </p>
-                                            )}
-                                            {r.betaald_notitie && (
-                                              <p className="text-xs mt-0.5 italic truncate max-w-[100px]" style={{ color: '#8B5A2B' }} title={r.betaald_notitie}>
-                                                {r.betaald_notitie}
-                                              </p>
-                                            )}
+                                          <td className="px-3 py-2 min-w-[150px]">
+                                            {(() => {
+                                              const dateInputId = `date-${r.id}`;
+                                              const today = new Date().toISOString().split('T')[0];
+                                              const currentDate = r.betaald_op ? new Date(r.betaald_op).toISOString().split('T')[0] : today;
+                                              return (
+                                                <>
+                                                  <div className="flex items-center gap-1 mb-1">
+                                                    <button
+                                                      onClick={() => {
+                                                        const el = document.getElementById(dateInputId) as HTMLInputElement | null;
+                                                        toggleBetaald(r.id, r.betaald, el?.value);
+                                                      }}
+                                                      className="text-xs px-2 py-1 rounded font-semibold"
+                                                      style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
+                                                      {r.betaald ? '✓ Betaald' : 'Open'}
+                                                    </button>
+                                                  </div>
+                                                  <input
+                                                    id={dateInputId}
+                                                    type="date"
+                                                    className="w-full text-xs px-1.5 py-0.5 rounded border mb-1"
+                                                    style={{ borderColor: '#EDD49A', background: '#FFFBF2', color: '#2C1A0E' }}
+                                                    defaultValue={currentDate}
+                                                  />
+                                                  <input
+                                                    className="w-full text-xs px-1.5 py-0.5 rounded border"
+                                                    style={{ borderColor: '#EDD49A', background: '#FFFBF2', color: '#2C1A0E' }}
+                                                    placeholder="notitie..."
+                                                    defaultValue={r.betaald_notitie ?? ''}
+                                                    onBlur={e => { if (e.target.value !== (r.betaald_notitie ?? '')) savePaymentNote(r.id, e.target.value); }}
+                                                  />
+                                                </>
+                                              );
+                                            })()}
                                           </td>
                                           <td className="px-3 py-2">
                                             {slugProducts.length > 0 ? (
