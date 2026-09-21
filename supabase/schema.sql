@@ -151,6 +151,8 @@ alter table public.registrations add column if not exists profile_id    uuid ref
 alter table public.registrations add column if not exists betaald            boolean default false;
 alter table public.registrations add column if not exists betaald_op         timestamptz;
 alter table public.registrations add column if not exists actief             boolean default true;
+-- Betaalnotitie (methode, referentie, deelbetaling, etc.)
+alter table public.registrations add column if not exists betaald_notitie text default '';
 -- Extern inschrijven (bijv. externe evenementensite)
 -- Geen DEFAULT: bestaande rijen blijven null (= nog niet gecheckt), alleen nieuw ingesteld via admin UI
 alter table public.registrations add column if not exists extern_ingeschreven boolean;

@@ -23,6 +23,7 @@ interface Registration {
   profile_id: string | null;
   betaald: boolean;
   betaald_op: string | null;
+  betaald_notitie: string;
   actief: boolean;
   extern_ingeschreven: boolean;
   registered_at: string;
@@ -208,6 +209,16 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, actief }),
+    });
+  };
+
+  // ── Betaalnotitie opslaan ──
+  const savePaymentNote = async (id: string, note: string) => {
+    setRegs(prev => prev.map(r => r.id === id ? { ...r, betaald_notitie: note } : r));
+    await fetch('/api/admin/update-payment-note', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, betaald_notitie: note }),
     });
   };
 
@@ -667,10 +678,20 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                           </td>
                                           <td className="px-3 py-2">
                                             <button onClick={() => toggleBetaald(r.id, r.betaald)}
-                                              className="text-xs px-2 py-1 rounded font-semibold"
+                                              className="text-xs px-2 py-1 rounded font-semibold block"
                                               style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
                                               {r.betaald ? '✓ Betaald' : 'Open'}
                                             </button>
+                                            {r.betaald && r.betaald_op && (
+                                              <p className="text-xs mt-0.5 whitespace-nowrap" style={{ color: '#8B5A2B' }}>
+                                                {new Date(r.betaald_op).toLocaleDateString('nl-NL')}
+                                              </p>
+                                            )}
+                                            {r.betaald_notitie && (
+                                              <p className="text-xs mt-0.5 italic truncate max-w-[100px]" style={{ color: '#8B5A2B' }} title={r.betaald_notitie}>
+                                                {r.betaald_notitie}
+                                              </p>
+                                            )}
                                           </td>
                                           <td className="px-3 py-2">
                                             {slugProducts.length > 0 ? (
@@ -751,6 +772,18 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                                     <p style={{ color: '#2C1A0E' }}>{r.message}</p>
                                                   </div>
                                                 )}
+                                              </div>
+                                              {/* Betaalnotitie */}
+                                              <div className="mt-3 pt-3" style={{ borderTop: '1px solid #EDD49A' }}>
+                                                <p className="font-bold uppercase tracking-wide mb-1 text-xs" style={{ color: '#8B5A2B' }}>
+                                                  Betaalnotitie{r.betaald_op && <span className="font-normal ml-1">— betaald op {new Date(r.betaald_op).toLocaleDateString('nl-NL')}</span>}
+                                                </p>
+                                                <input
+                                                  className="field text-xs py-1.5 w-full"
+                                                  placeholder="bijv. iDEAL, cash €10 + €5 later, boekje apart..."
+                                                  defaultValue={r.betaald_notitie ?? ''}
+                                                  onBlur={e => { if (e.target.value !== (r.betaald_notitie ?? '')) savePaymentNote(r.id, e.target.value); }}
+                                                />
                                               </div>
                                             </td>
                                           </tr>
