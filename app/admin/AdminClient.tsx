@@ -24,6 +24,7 @@ interface Registration {
   betaald: boolean;
   betaald_op: string | null;
   betaald_notitie: string;
+  lunch_voorbereid: boolean;
   actief: boolean;
   extern_ingeschreven: boolean;
   registered_at: string;
@@ -210,6 +211,28 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, actief }),
+    });
+  };
+
+  // ── Lunch voorbereid toggle ──
+  const toggleLunchVoorbereid = async (id: string, current: boolean) => {
+    const lunch_voorbereid = !current;
+    setRegs(prev => prev.map(r => r.id === id ? { ...r, lunch_voorbereid } : r));
+    await fetch('/api/admin/toggle-lunch-voorbereid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, lunch_voorbereid }),
+    });
+  };
+
+  // ── Wil lunchen toggle ──
+  const toggleWilLunchen = async (id: string, current: boolean) => {
+    const wil_lunchen = !current;
+    setRegs(prev => prev.map(r => r.id === id ? { ...r, wil_lunchen } : r));
+    await fetch('/api/admin/toggle-wil-lunchen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, wil_lunchen }),
     });
   };
 
@@ -737,7 +760,13 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                               <span className="text-xs" style={{ color: '#A07850' }}>—</span>
                                             )}
                                           </td>
-                                          <td className="px-3 py-2 text-center">{r.wil_lunchen ? '✅' : '-'}</td>
+                                          <td className="px-3 py-2 text-center">
+                                            <button onClick={() => toggleWilLunchen(r.id, r.wil_lunchen)}
+                                              className="text-xs px-2 py-1 rounded font-semibold"
+                                              style={{ background: r.wil_lunchen ? '#FEF3C7' : '#F3F4F6', color: r.wil_lunchen ? '#92400E' : '#9CA3AF' }}>
+                                              {r.wil_lunchen ? '🍽 Lunch' : '—'}
+                                            </button>
+                                          </td>
                                           <td className="px-3 py-2 text-center">{r.wilt_boekje ? '✅' : '-'}</td>
                                           <td className="px-3 py-2 text-xs whitespace-nowrap" style={{ color: '#8B5A2B' }}>
                                             {new Date(r.registered_at).toLocaleDateString('nl-NL')}
@@ -846,7 +875,7 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                           ) : (
                             <table className="w-full text-sm">
                               <thead><tr style={{ background: '#FAF3E3' }}>
-                                {['Naam', 'Dieetwensen', 'Betaald'].map(h => (
+                                {['Naam', 'Dieetwensen', 'Voorbereid'].map(h => (
                                   <th key={h} className="text-left px-4 py-2 font-bold text-xs uppercase tracking-wide" style={{ color: '#8B5A2B' }}>{h}</th>
                                 ))}
                               </tr></thead>
@@ -854,12 +883,17 @@ export default function AdminClient({ adminName, adminRole, registrations, roame
                                 {lunchers.map((r, i) => (
                                   <tr key={r.id} style={{ background: i % 2 === 0 ? 'white' : '#FAF3E3', color: '#2C1A0E' }}>
                                     <td className="px-4 py-2 font-semibold">{r.name}</td>
-                                    <td className="px-4 py-2 text-sm">{r.dietary || '-'}</td>
+                                    <td className="px-4 py-2 text-sm">
+                                      {r.dietary
+                                        ? <span className="font-semibold" style={{ color: '#C4622D' }}>⚠ {r.dietary}</span>
+                                        : <span style={{ color: '#8B5A2B' }}>-</span>
+                                      }
+                                    </td>
                                     <td className="px-4 py-2">
-                                      <button onClick={() => toggleBetaald(r.id, r.betaald)}
+                                      <button onClick={() => toggleLunchVoorbereid(r.id, r.lunch_voorbereid ?? false)}
                                         className="text-xs px-2 py-1 rounded font-semibold"
-                                        style={{ background: r.betaald ? '#D1FAE5' : '#FEF3C7', color: r.betaald ? '#065F46' : '#92400E' }}>
-                                        {r.betaald ? '✓ Betaald' : 'Open'}
+                                        style={{ background: r.lunch_voorbereid ? '#D1FAE5' : '#F3F4F6', color: r.lunch_voorbereid ? '#065F46' : '#6B7280' }}>
+                                        {r.lunch_voorbereid ? '✓ Ingepakt' : 'Nog niet'}
                                       </button>
                                     </td>
                                   </tr>

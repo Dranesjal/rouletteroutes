@@ -156,6 +156,8 @@ alter table public.registrations add column if not exists betaald_notitie text d
 -- Extern inschrijven (bijv. externe evenementensite)
 -- Geen DEFAULT: bestaande rijen blijven null (= nog niet gecheckt), alleen nieuw ingesteld via admin UI
 alter table public.registrations add column if not exists extern_ingeschreven boolean;
+-- Lunch voorbereid/ingepakt (bijv. apart ingepakt vanwege allergie)
+alter table public.registrations add column if not exists lunch_voorbereid boolean default false;
 
 -- ============================================================
 -- Maak jezelf admin (vervang het e-mailadres)
